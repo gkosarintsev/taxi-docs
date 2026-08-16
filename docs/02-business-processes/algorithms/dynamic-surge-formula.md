@@ -264,6 +264,5 @@ func ApplySpatialAndTemporalFilter(
 
 - [ADR-0002: Uber H3 Spatial Index](../../01-architecture/adr/0002-spatial-index-h3.md)
 - [ADR-0005: Surge Pricing Algorithm & Elasticity Model](../../01-architecture/adr/0005-surge-pricing-algorithm.md)
-- [Real-Time Telemetry Data Pipeline](../../01-architecture/deployment/data-pipeline-architecture.puml)
+- [Real-Time Telemetry Data Pipeline](../../01-architecture/deployment/Data_Pipeline_Architecture.svg)
 - [Matching Optimization Algorithm](matching-optimization-algorithm.md)
-$$

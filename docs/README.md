@@ -42,15 +42,15 @@ graph LR
 ### 1. [Architecture & System Design](01-architecture/)
 
 - **C4 Model Diagrams:**
-  - [System Context (Level 1)](01-architecture/c4/01-context.puml)
-  - [Container Architecture (Level 2)](01-architecture/c4/02-containers.puml)
-  - [Matching Service Components (Level 3)](01-architecture/c4/components/matching-service.puml)
-  - [Location Service Components (Level 3)](01-architecture/c4/components/location-service.puml)
-  - [Billing Service Components (Level 3)](01-architecture/c4/components/billing-service.puml)
+  - [System Context (Level 1)](01-architecture/c4/C4_Elements.svg) ([.puml](01-architecture/c4/01-context.puml))
+  - [Container Architecture (Level 2)](01-architecture/c4/C4_Containers.svg) ([.puml](01-architecture/c4/02-containers.puml))
+  - [Matching Service Components (Level 3)](01-architecture/c4/components/C4_Matching_Service_Components.svg) ([.puml](01-architecture/c4/components/matching-service.puml))
+  - [Location Service Components (Level 3)](01-architecture/c4/components/C4_Location_Service_Components.svg) ([.puml](01-architecture/c4/components/location-service.puml))
+  - [Billing Service Components (Level 3)](01-architecture/c4/components/C4_Billing_Service_Components.svg) ([.puml](01-architecture/c4/components/billing-service.puml))
 - **Deployment & Streaming Topologies:**
-  - [Kubernetes (EKS / GKE) Production Topology](01-architecture/deployment/k8s-deployment-topology.puml)
-  - [Multi-Region Active-Active & DR Topology](01-architecture/deployment/multi-region-dr-topology.puml)
-  - [Real-time Geospatial Streaming & ML Feature Pipeline](01-architecture/deployment/data-pipeline-architecture.puml)
+  - [Kubernetes (EKS / GKE) Production Topology](01-architecture/deployment/Kubernetes_Deployment_Topology.svg) ([.puml](01-architecture/deployment/k8s-deployment-topology.puml))
+  - [Multi-Region Active-Active & DR Topology](01-architecture/deployment/Multi_Region_DR_Topology.svg) ([.puml](01-architecture/deployment/multi-region-dr-topology.puml))
+  - [Real-time Geospatial Streaming & ML Feature Pipeline](01-architecture/deployment/Data_Pipeline_Architecture.svg) ([.puml](01-architecture/deployment/data-pipeline-architecture.puml))
 - **Architectural Decision Records (ADRs):**
   - [ADR-0000: ADR Template](01-architecture/adr/0000-template.md)
   - [ADR-0001: Apache Kafka as Distributed Event Spine](01-architecture/adr/0001-use-kafka-for-events.md)
@@ -87,9 +87,9 @@ graph LR
   - [Driver Shift & Liveness Status](02-business-processes/state-machines/driver-status.md)
   - [Payment & Ledger State Machine](02-business-processes/state-machines/payment-status.md)
 - **Sequence Diagrams:**
-  - [Order Creation & Fare Pre-Auth](02-business-processes/sequence-diagrams/order-creation-flow.puml)
-  - [Driver Spatial Matching & 15s Ringing Loop](02-business-processes/sequence-diagrams/driver-matching-flow.puml)
-  - [B2B Fleet Settlement & Automated Payouts](02-business-processes/sequence-diagrams/b2b-payout-flow.puml)
+  - [Order Creation & Fare Pre-Auth](02-business-processes/sequence-diagrams/Order_Creation_Sequence.svg) ([.puml](02-business-processes/sequence-diagrams/order-creation-flow.puml))
+  - [Driver Spatial Matching & 15s Ringing Loop](02-business-processes/sequence-diagrams/Driver_Matching_Sequence.svg) ([.puml](02-business-processes/sequence-diagrams/driver-matching-flow.puml))
+  - [B2B Fleet Settlement & Automated Payouts](02-business-processes/sequence-diagrams/B2B_Payout_Sequence.svg) ([.puml](02-business-processes/sequence-diagrams/b2b-payout-flow.puml))
 
 
 ### 3. [APIs & Communication Contracts](03-api-and-contracts/)
@@ -120,9 +120,9 @@ graph LR
 ### 4. [Domain Model & Data Architecture](04-domain-model/)
 
 - **Entity-Relationship Models:**
-  - [Core Relational Database (PostgreSQL)](04-domain-model/er-diagrams/core-database-er.puml)
-  - [Location & Spatial Database (Redis + ClickHouse)](04-domain-model/er-diagrams/location-database-er.puml)
-  - [Billing & Ledger Database (PostgreSQL)](04-domain-model/er-diagrams/billing-database-er.puml)
+  - [Core Relational Database (PostgreSQL)](04-domain-model/er-diagrams/Core_Database_ER.svg) ([.puml](04-domain-model/er-diagrams/core-database-er.puml))
+  - [Location & Spatial Database (Redis + ClickHouse)](04-domain-model/er-diagrams/Location_Database_ER.svg) ([.puml](04-domain-model/er-diagrams/location-database-er.puml))
+  - [Billing & Ledger Database (PostgreSQL)](04-domain-model/er-diagrams/Billing_Database_ER.svg) ([.puml](04-domain-model/er-diagrams/billing-database-er.puml))
 - **Physical SQL DDL Schemas:**
   - [Core Domain DDL Migration (`001_core_schema.sql`)](04-domain-model/sql-ddl/001_core_schema.sql)
   - [Double-Entry Ledger DDL Migration (`002_billing_ledger_schema.sql`)](04-domain-model/sql-ddl/002_billing_ledger_schema.sql)
@@ -135,10 +135,10 @@ graph LR
 ### 5. [UI / UX Design as Code](05-ui-and-ux/)
 
 - **Screen Flows & Wireframes:**
-  - [Passenger App Navigation Graph](05-ui-and-ux/screen-flows/passenger-app-flow.puml)
-  - [Driver App Shift & Offer Graph](05-ui-and-ux/screen-flows/driver-app-flow.puml)
-  - [Driver KYC & Vehicle Photo Inspection Flow](05-ui-and-ux/screen-flows/driver-kyc-upload-flow.puml)
-  - [B2B Dispatcher Web Wireframes](05-ui-and-ux/screen-flows/b2b-dispatch-wireframes.puml)
+  - [Passenger App Navigation Graph](05-ui-and-ux/screen-flows/Passenger_App_Screen_Flow.svg) ([.puml](05-ui-and-ux/screen-flows/passenger-app-flow.puml))
+  - [Driver App Shift & Offer Graph](05-ui-and-ux/screen-flows/Driver_App_Screen_Flow.svg) ([.puml](05-ui-and-ux/screen-flows/driver-app-flow.puml))
+  - [Driver KYC & Vehicle Photo Inspection Flow](05-ui-and-ux/screen-flows/Driver_KYC_Upload_Screen_Flow.svg) ([.puml](05-ui-and-ux/screen-flows/driver-kyc-upload-flow.puml))
+  - [B2B Dispatcher Web Wireframes](05-ui-and-ux/screen-flows/B2B_Dispatch_Wireframe.svg) ([.puml](05-ui-and-ux/screen-flows/b2b-dispatch-wireframes.puml))
 - **Screen Contracts:**
   - [Passenger Ride Search & Radar](05-ui-and-ux/screen-contracts/passenger-ride-search.md)
   - [Passenger Active Ride & Live Tracking](05-ui-and-ux/screen-contracts/passenger-active-ride.md)
@@ -157,6 +157,7 @@ graph LR
 
 ## 🛠️ Viewing & Tooling Compatibility
 
+- **GitHub Native Viewing:** All architecture, sequence, database ER, and UI screen flow diagrams are pre-rendered into standalone `.svg` files for crisp vector viewing on any device.
 - **Obsidian:** All `.md` files contain native Mermaid diagrams and Markdown links. Diagrams authored in `.puml` can be rendered using the _Obsidian PlantUML_ plugin.
 - **MkDocs Material:** Build and preview locally with `mkdocs serve`.
 - **API Tooling:** Load OpenAPI and AsyncAPI YAML files directly into Swagger UI, Postman, or AsyncAPI Studio.
