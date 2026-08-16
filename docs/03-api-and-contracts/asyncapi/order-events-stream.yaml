@@ -1,0 +1,84 @@
+asyncapi: '2.6.0'
+info:
+  title: Order Lifecycle Events Stream Specification
+  version: 1.0.0
+  description: Event stream for all order lifecycle state changes, driver assignments, and trip milestones.
+
+servers:
+  production-kafka:
+    url: kafka-broker.internal.mobility-platform.io:9092
+    protocol: kafka
+
+channels:
+  order.lifecycle.events:
+    description: Stream of order state changes partitioned by order_id.
+    subscribe:
+      summary: Consume order lifecycle updates
+      operationId: consumeOrderEvents
+      message:
+        oneOf:
+          - $ref: '#/components/messages/OrderRequested'
+          - $ref: '#/components/messages/OrderAllocated'
+          - $ref: '#/components/messages/OrderCompleted'
+
+components:
+  messages:
+    OrderRequested:
+      name: OrderRequested
+      payload:
+        type: object
+        required: [event_id, order_id, passenger_id, pickup_h3, timestamp]
+        properties:
+          event_id:
+            type: string
+          order_id:
+            type: string
+          passenger_id:
+            type: string
+          tariff_class:
+            type: string
+          pickup_h3:
+            type: string
+          timestamp:
+            type: string
+            format: date-time
+
+    OrderAllocated:
+      name: OrderAllocated
+      payload:
+        type: object
+        required: [event_id, order_id, driver_id, vehicle_id, eta_seconds, timestamp]
+        properties:
+          event_id:
+            type: string
+          order_id:
+            type: string
+          driver_id:
+            type: string
+          vehicle_id:
+            type: string
+          eta_seconds:
+            type: integer
+          timestamp:
+            type: string
+            format: date-time
+
+    OrderCompleted:
+      name: OrderCompleted
+      payload:
+        type: object
+        required: [event_id, order_id, driver_id, final_distance_meters, final_duration_seconds, timestamp]
+        properties:
+          event_id:
+            type: string
+          order_id:
+            type: string
+          driver_id:
+            type: string
+          final_distance_meters:
+            type: integer
+          final_duration_seconds:
+            type: integer
+          timestamp:
+            type: string
+            format: date-time

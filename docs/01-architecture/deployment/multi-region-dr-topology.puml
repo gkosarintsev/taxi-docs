@@ -1,0 +1,46 @@
+@startuml Multi_Region_DR_Topology
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Multi-Region Active-Active & Disaster Recovery Architecture
+
+Person(mobile_users, "Mobile & Web Clients", "Riders, Drivers, B2B Dispatchers")
+
+Deployment_Node(edge_network, "Global Edge & DNS Anycast Layer", "Cloudflare Magic Transit / AWS Route 53") {
+    Container(anycast_dns, "Geo-DNS & Anycast Edge", "Cloudflare / Route 53 Latency Routing", "Routes traffic to nearest healthy regional data center with health check failover (<10s)")
+}
+
+Deployment_Node(region_primary, "Region A (Primary Active - US-East)", "AWS us-east-1") {
+    Deployment_Node(k8s_a, "EKS Cluster Primary") {
+        Container(services_a, "Mobility Microservices Suite", "Location, Matching, Order, Billing")
+        Container(kafka_a, "Kafka Cluster A", "Active Event Mesh")
+        Container(redis_a, "Redis Cluster A", "Active Spatial Cache")
+    }
+    ContainerDb(db_primary, "Aurora PostgreSQL Primary", "Primary Writer + Replicas")
+}
+
+Deployment_Node(region_secondary, "Region B (Secondary Active / DR - US-West)", "AWS us-west-2") {
+    Deployment_Node(k8s_b, "EKS Cluster Secondary") {
+        Container(services_b, "Mobility Microservices Suite", "Location, Matching, Order, Billing (Warm Scale)")
+        Container(kafka_b, "Kafka Cluster B", "Active Event Mesh")
+        Container(redis_b, "Redis Cluster B", "Active Spatial Cache")
+    }
+    ContainerDb(db_secondary, "Aurora PostgreSQL Cross-Region Standby", "Global Database Async Replica (Lag < 1s)")
+}
+
+Rel(mobile_users, anycast_dns, "HTTPS / WSS / gRPC Requests", "TLS 1.3")
+Rel(anycast_dns, services_a, "90% Traffic (Nearest Geographic Origin)", "HTTPS / gRPC")
+Rel(anycast_dns, services_b, "10% Canary / Full Failover on Health Check Breach", "HTTPS / gRPC")
+
+Rel(services_a, kafka_a, "Read / Write Events", "Kafka Protocol")
+Rel(services_b, kafka_b, "Read / Write Events", "Kafka Protocol")
+
+Rel(kafka_a, kafka_b, "Bi-directional MirrorMaker 2 Replication", "Kafka Protocol")
+
+Rel(services_a, db_primary, "Read / Write (Strict ACID)", "PostgreSQL Protocol")
+Rel(services_b, db_secondary, "Read Only (Promoted to Primary on Failover)", "PostgreSQL Protocol")
+
+Rel(db_primary, db_secondary, "Aurora Global Database Physical Replication (Lag < 1s)", "AWS Storage Replication")
+
+@enduml

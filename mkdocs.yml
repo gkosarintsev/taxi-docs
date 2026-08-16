@@ -1,0 +1,160 @@
+site_name: Urban Mobility Platform Architecture
+site_description: Production-grade Docs-as-Code Architectural Design and System Documentation for an Uber-like Platform.
+site_author: Urban Mobility Platform Architecture Guild
+docs_dir: docs
+
+theme:
+  name: material
+  language: en
+  palette:
+    # Palette toggle for automatic / light / dark mode
+    - scheme: default
+      primary: slate
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: slate
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+
+nav:
+  - Overview: README.md
+  - 01 Architecture:
+      - C4 Diagrams:
+          - Level 1 Context: 01-architecture/c4/01-context.puml
+          - Level 2 Containers: 01-architecture/c4/02-containers.puml
+          - Matching Service: 01-architecture/c4/components/matching-service.puml
+          - Location Service: 01-architecture/c4/components/location-service.puml
+          - Billing Service: 01-architecture/c4/components/billing-service.puml
+      - Deployment & Data Pipelines:
+          - Kubernetes EKS Topology: 01-architecture/deployment/k8s-deployment-topology.puml
+          - Multi-Region DR Topology: 01-architecture/deployment/multi-region-dr-topology.puml
+          - Real-Time Streaming & ML Pipeline: 01-architecture/deployment/data-pipeline-architecture.puml
+      - ADRs:
+          - ADR Template: 01-architecture/adr/0000-template.md
+          - ADR-0001 Kafka Event Bus: 01-architecture/adr/0001-use-kafka-for-events.md
+          - ADR-0002 H3 Spatial Index: 01-architecture/adr/0002-spatial-index-h3.md
+          - ADR-0003 PostgreSQL Billing Ledger: 01-architecture/adr/0003-postgresql-for-billing.md
+          - ADR-0004 Transactional Outbox Pattern: 01-architecture/adr/0004-transactional-outbox-pattern.md
+          - ADR-0005 Surge Pricing Elasticity Model: 01-architecture/adr/0005-surge-pricing-algorithm.md
+          - ADR-0006 Telemetry Protocol Selection: 01-architecture/adr/0006-telemetry-protocol-grpc-vs-mqtt-vs-ws.md
+          - ADR-0007 Redis Distributed Locking: 01-architecture/adr/0007-redis-distributed-locking-strategy.md
+      - NFRs:
+          - Performance & Scalability: 01-architecture/nfr/performance-and-scalability.md
+          - Security & PCI DSS: 01-architecture/nfr/security-and-pci-dss.md
+          - Fault Tolerance & SLA: 01-architecture/nfr/fault-tolerance-sla.md
+          - Observability & Tracing: 01-architecture/nfr/observability-and-tracing.md
+          - GDPR & Data Retention: 01-architecture/nfr/gdpr-and-data-retention.md
+  - 02 Business Processes:
+      - Mathematical Algorithms:
+          - Batched Bipartite Matching: 02-business-processes/algorithms/matching-optimization-algorithm.md
+          - Dynamic Surge Pricing Formula: 02-business-processes/algorithms/dynamic-surge-formula.md
+          - ML ETA & Routing Correction: 02-business-processes/algorithms/eta-routing-ml-correction.md
+          - Dead Reckoning & Kalman Filter: 02-business-processes/algorithms/dead-reckoning-kalman-filter.md
+      - BPMN Workflows:
+          - Ride Execution: 02-business-processes/bpmn/ride-execution-flow.bpmn
+          - Driver KYC Verification: 02-business-processes/bpmn/driver-kyc-verification.bpmn
+          - Scheduled Rides Dispatch: 02-business-processes/bpmn/scheduled-rides-dispatch.bpmn
+          - Safety Incident Escalation: 02-business-processes/bpmn/safety-incident-escalation.bpmn
+          - Carpool & Shared Rides: 02-business-processes/bpmn/carpool-shared-rides.bpmn
+          - B2B Onboarding: 02-business-processes/bpmn/b2b-partner-onboarding.bpmn
+          - Dispute Resolution: 02-business-processes/bpmn/dispute-resolution.bpmn
+      - State Machines:
+          - Order Lifecycle: 02-business-processes/state-machines/order-lifecycle.md
+          - Driver Status: 02-business-processes/state-machines/driver-status.md
+          - Payment Lifecycle: 02-business-processes/state-machines/payment-status.md
+      - Sequence Diagrams:
+          - Order Creation: 02-business-processes/sequence-diagrams/order-creation-flow.puml
+          - Driver Matching: 02-business-processes/sequence-diagrams/driver-matching-flow.puml
+          - B2B Payout: 02-business-processes/sequence-diagrams/b2b-payout-flow.puml
+  - 03 API & Contracts:
+      - OpenAPI:
+          - Mobile Gateway API: 03-api-and-contracts/openapi/mobile-gateway-api.yaml
+          - Driver Onboarding & KYC API: 03-api-and-contracts/openapi/driver-onboarding-api.yaml
+          - Safety & Emergency SOS API: 03-api-and-contracts/openapi/safety-and-sos-api.yaml
+          - Promotions & Loyalty API: 03-api-and-contracts/openapi/promotions-and-loyalty-api.yaml
+          - B2B Enterprise Webhooks API: 03-api-and-contracts/openapi/b2b-webhooks-api.yaml
+          - B2B Client API: 03-api-and-contracts/openapi/b2b-client-api.yaml
+          - Admin API: 03-api-and-contracts/openapi/admin-api.yaml
+      - AsyncAPI:
+          - Driver Telemetry Stream: 03-api-and-contracts/asyncapi/driver-geolocations-stream.yaml
+          - Safety Alerts & Crash Stream: 03-api-and-contracts/asyncapi/safety-telemetry-alerts-stream.yaml
+          - Surge Grid Broadcast Stream: 03-api-and-contracts/asyncapi/surge-grid-broadcast-stream.yaml
+          - Order Events Stream: 03-api-and-contracts/asyncapi/order-events-stream.yaml
+          - Billing Events Stream: 03-api-and-contracts/asyncapi/billing-events-stream.yaml
+      - Protobuf:
+          - Routing Service: 03-api-and-contracts/proto/routing_v1.proto
+          - Pricing & Tariff Service: 03-api-and-contracts/proto/pricing_v1.proto
+          - Matching Service: 03-api-and-contracts/proto/matching_v1.proto
+          - Location Service: 03-api-and-contracts/proto/location_v1.proto
+          - Billing Service: 03-api-and-contracts/proto/billing_v1.proto
+          - Fraud & Spoofing Prevention Service: 03-api-and-contracts/proto/fraud_v1.proto
+  - 04 Domain Model:
+      - ER Diagrams:
+          - Core Database ER: 04-domain-model/er-diagrams/core-database-er.puml
+          - Location Database ER: 04-domain-model/er-diagrams/location-database-er.puml
+          - Billing Database ER: 04-domain-model/er-diagrams/billing-database-er.puml
+      - Physical SQL Schemas:
+          - Core PostgreSQL Schema: 04-domain-model/sql-ddl/001_core_schema.sql
+          - Billing Ledger Schema: 04-domain-model/sql-ddl/002_billing_ledger_schema.sql
+          - ClickHouse Telemetry Schema: 04-domain-model/sql-ddl/003_clickhouse_telemetry_schema.sql
+      - Data Contracts & Standards: 04-domain-model/data-contracts.md
+      - Domain Dictionary: 04-domain-model/domain-dictionary.md
+  - 05 UI & UX:
+      - Screen Flows:
+          - Passenger App Flow: 05-ui-and-ux/screen-flows/passenger-app-flow.puml
+          - Driver App Flow: 05-ui-and-ux/screen-flows/driver-app-flow.puml
+          - Driver KYC & Photo Inspection Flow: 05-ui-and-ux/screen-flows/driver-kyc-upload-flow.puml
+          - B2B Dispatch Wireframe: 05-ui-and-ux/screen-flows/b2b-dispatch-wireframes.puml
+      - Screen Contracts:
+          - Passenger Ride Search: 05-ui-and-ux/screen-contracts/passenger-ride-search.md
+          - Passenger Active Ride: 05-ui-and-ux/screen-contracts/passenger-active-ride.md
+          - Passenger Rating & Tipping: 05-ui-and-ux/screen-contracts/passenger-rating-and-tip.md
+          - Safety Toolkit & Emergency SOS: 05-ui-and-ux/screen-contracts/safety-toolkit-modal.md
+          - Driver Order Offer: 05-ui-and-ux/screen-contracts/driver-order-offer.md
+          - Driver Active Navigation: 05-ui-and-ux/screen-contracts/driver-active-navigation.md
+          - B2B Dispatch Board: 05-ui-and-ux/screen-contracts/b2b-dispatch-board.md
+      - Design System Tokens:
+          - Colors Token: 05-ui-and-ux/design-tokens/colors.json
+          - Typography Token: 05-ui-and-ux/design-tokens/typography.json
+          - Components Spec: 05-ui-and-ux/design-tokens/components-spec.md

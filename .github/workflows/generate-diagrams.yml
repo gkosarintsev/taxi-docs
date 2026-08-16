@@ -1,0 +1,68 @@
+name: Generate Architecture & Workflow Diagrams
+
+on:
+  push:
+    paths:
+      - 'docs/**/*.puml'
+      - 'docs/**/*.bpmn'
+      - '.github/workflows/generate-diagrams.yml'
+    branches:
+      - main
+      - master
+  workflow_dispatch: # Allows manual trigger from GitHub Actions UI
+
+permissions:
+  contents: write
+
+jobs:
+  render_diagrams:
+    name: Render Diagrams to SVG
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Node.js for BPMN Tooling
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Graphviz & Download Latest PlantUML
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz fonts-dejavu
+          curl -sL https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar -o plantuml.jar
+
+      - name: Render All PlantUML (.puml) to SVG
+        run: |
+          echo "Rendering all PlantUML architecture, sequence, ER, and screen flow diagrams..."
+          java -Djava.awt.headless=true -jar plantuml.jar -tsvg "docs/**/*.puml"
+          echo "PlantUML rendering completed successfully."
+
+      - name: Render All BPMN (.bpmn) Workflows to SVG
+        run: |
+          echo "Rendering BPMN 2.0 process flows..."
+          npm install -g bpmn-to-image
+          find docs -type f -name "*.bpmn" | while read -r bpmn_file; do
+            svg_file="${bpmn_file%.bpmn}.svg"
+            echo "Converting $bpmn_file -> $svg_file"
+            bpmn-to-image "$bpmn_file:$svg_file" || echo "Warning: Could not convert $bpmn_file (check DI layout)"
+          done
+          echo "BPMN rendering completed."
+
+      - name: Commit and Push Generated SVG Diagrams
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs(diagrams): auto-generate SVG diagrams from PUML & BPMN [skip ci]"
+          file_pattern: "docs/**/*.svg"
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
+          commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"

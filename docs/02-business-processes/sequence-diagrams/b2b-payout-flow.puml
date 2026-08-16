@@ -1,0 +1,46 @@
+@startuml B2B_Payout_Sequence
+autonumber
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+actor "Cron Scheduler / B2B Admin" as Scheduler
+participant "Billing Service" as BillSvc
+participant "Double-Entry Ledger" as Ledger
+database "PostgreSQL Billing DB" as DB
+participant "Banking Payout Gateway (Stripe Connect / Wise)" as BankPSP
+actor "B2B Fleet / Driver Bank Account" as PartnerBank
+
+== Step 1: Payout Batch Settlement Calculation ==
+Scheduler -> BillSvc: TriggerWeeklyPayoutBatch(tenant_id, cutoff_timestamp)
+BillSvc -> Ledger: CalculateSettledBalances(tenant_id, status='SETTLED')
+Ledger -> DB: SELECT SUM(amount) FROM ledger_entries WHERE account_type='PARTNER_PAYABLE' AND settled=true
+DB --> Ledger: Partner Balance: $14,250.00 (Gross: $17,000 - Platform Commission 15%: $2,550 - Fees: $200)
+Ledger --> BillSvc: Settlement Summary Ready
+
+== Step 2: Ledger Journal Reservation ==
+BillSvc -> DB: BEGIN TRANSACTION
+BillSvc -> Ledger: CreateJournal(type="PAYOUT_RESERVATION", amount=$14,250.00)
+note over DB
+  Debit: Partner Payable Liability ($14,250)
+  Credit: In-Transit Payout Clearing ($14,250)
+end note
+BillSvc -> DB: COMMIT TRANSACTION
+
+== Step 3: Bank Payout Execution ==
+BillSvc -> BankPSP: POST /v1/transfers {destination_iban, amount: 1425000, currency: "USD", idempotency_key}
+BankPSP --> BillSvc: 202 Accepted (transfer_id: "tr_991823901")
+
+== Step 4: Webhook Settlement Confirmation ==
+BankPSP -> BillSvc: Webhook: transfer.paid {transfer_id: "tr_991823901", status: "SUCCEEDED"}
+BillSvc -> DB: BEGIN TRANSACTION
+BillSvc -> Ledger: CreateJournal(type="PAYOUT_SETTLED")
+note over DB
+  Debit: In-Transit Payout Clearing ($14,250)
+  Credit: Platform Bank Operating Asset ($14,250)
+end note
+BillSvc -> DB: COMMIT TRANSACTION
+
+BankPSP -> PartnerBank: Direct ACH / SEPA Wire Transfer Received ($14,250.00)
+BillSvc --> Scheduler: Payout Batch Completed Successfully (Receipt Generated)
+
+@enduml

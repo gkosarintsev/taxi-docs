@@ -1,0 +1,34 @@
+@startuml C4_Location_Service_Components
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Location & Geospatial Ingestion Service - Component Diagram (Level 3)
+
+Container(driver_app, "Driver Mobile App", "Mobile Client", "Emits GPS telemetry over WSS/gRPC stream")
+ContainerDb(redis_cluster, "Redis Spatial Cluster", "Redis 7.x", "In-memory H3 geospatial indexing and driver live states")
+ContainerDb(kafka, "Apache Kafka", "Kafka Cluster", "Topic: driver.telemetry.raw and driver.telemetry.snapped")
+ContainerDb(clickhouse, "Telemetry Analytics DB", "ClickHouse", "Historical driver trajectories & heatmaps")
+System_Ext(osrm_snapper, "Map Matching Engine", "OSRM / Valhalla", "Snaps raw GPS coordinates to road network geometry")
+
+Container_Boundary(loc_service, "Location Service") {
+    Component(ws_ingestor, "High-Throughput Stream Ingestor", "Go Netpoll / gRPC", "Maintains 100k+ concurrent driver connections; validates TLS and auth tokens")
+    Component(deadband_filter, "Deadband & Kalman Filter", "Go / Math", "Discards GPS jitter, stationary points (<2m movement), and impossible speed spikes")
+    Component(map_matcher, "Road Map Matcher Client", "Go Worker Pool", "Batches raw coordinates and matches against road network vectors for accurate bearing")
+    Component(h3_indexer, "H3 Hexagonal Spatial Indexer", "Go (uber/h3-go)", "Computes H3 cell indices at Resolution 7 (city scale), 8 (neighborhood), and 9 (street block)")
+    Component(spatial_cache_writer, "Spatial Cache Manager", "Go Pipeline", "Executes pipelined Redis updates: ZADD, HSET, and Geospatial GEOADD with TTL")
+    Component(telemetry_publisher, "Kafka Stream Publisher", "Sarama Kafka Producer", "Emits enriched telemetry events with low latency (<10ms)")
+}
+
+Rel(driver_app, ws_ingestor, "Sends telemetry stream {lat, lon, speed, bearing, timestamp}", "gRPC Stream / WSS")
+Rel(ws_ingestor, deadband_filter, "Streams raw coordinate payloads", "Go Channel")
+Rel(deadband_filter, map_matcher, "Filters out noise & passes valid coords", "Go Channel")
+Rel(map_matcher, osrm_snapper, "RPC: Snap to nearest road segment", "gRPC")
+Rel(map_matcher, h3_indexer, "Supplies snapped lat/lon + heading", "Method call")
+Rel(h3_indexer, spatial_cache_writer, "Provides H3 Res 7/8/9 cell hashes", "Method call")
+Rel(spatial_cache_writer, redis_cluster, "Pipelined writes (H3 Sets & Driver hashes)", "RESP Protocol")
+Rel(h3_indexer, telemetry_publisher, "Passes enriched geolocation packet", "Method call")
+Rel(telemetry_publisher, kafka, "Publishes to driver.telemetry.snapped", "Kafka Protocol")
+Rel(kafka, clickhouse, "Ingested via Kafka Engine Table", "Batch Streaming")
+
+@enduml

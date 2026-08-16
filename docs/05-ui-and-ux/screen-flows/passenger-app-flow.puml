@@ -1,0 +1,30 @@
+@startuml Passenger_App_Screen_Flow
+skinparam defaultTextAlignment center
+skinparam roundCorner 15
+skinparam componentStyle rectangle
+
+title Passenger Mobile App - Screen Flow & Navigation Graph
+
+[1. Main Map Radar View\n(Nearby Drivers & Search Bar)] as S1
+[2. Address Autocomplete & Pin Drop] as S2
+[3. Tariff Selection & Price Quote Sheet\n(Economy, Comfort, Surge Multiplier)] as S3
+[4. Payment Method & Promo Selector] as S4
+[5. Radar Searching & Driver Matching Screen\n(Animated Ripple + Cancel Button)] as S5
+[6. Driver Assigned & Arriving HUD\n(Car Model, Plate, Pin Code, ETA)] as S6
+[7. Active In-Transit Ride View\n(Route Polyline, SOS Pill, Share Trip)] as S7
+[8. Ride Completion & Digital Receipt] as S8
+[9. Star Rating & Tip Selector] as S9
+
+S1 --> S2 : Tap "Where to?" input
+S2 --> S3 : Select destination address
+S3 --> S4 : Tap Payment Pill (Optional)
+S4 --> S3 : Confirm Card / Apple Pay
+S3 --> S5 : Tap "Confirm & Request Ride"
+S5 --> S1 : Rider cancels during search
+S5 --> S6 : Event: DRIVER_ASSIGNED
+S6 --> S7 : Driver starts trip (OTP verified)
+S7 --> S8 : Driver completes trip at dropoff
+S8 --> S9 : Tap "Rate Trip"
+S9 --> S1 : Submit rating & feedback
+
+@enduml

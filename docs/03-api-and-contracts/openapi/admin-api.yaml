@@ -1,0 +1,88 @@
+openapi: 3.0.3
+info:
+  title: Platform Administration & Operations API
+  description: Internal operations API for customer support, manual dispatch, surge overrides, and dispute resolutions.
+  version: 1.0.0
+servers:
+  - url: https://admin-internal.mobility-platform.io/api/v1
+    description: Internal Admin Gateway (Zero-Trust mTLS)
+
+paths:
+  /admin/surge/zones/override:
+    post:
+      summary: Manually override surge multiplier for an H3 spatial zone
+      operationId: overrideSurgeZone
+      security:
+        - AdminOAuth2: [admin:surge_write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - h3_cell_index
+                - surge_multiplier
+                - duration_minutes
+                - justification
+              properties:
+                h3_cell_index:
+                  type: string
+                  example: "881f1d488ffffff"
+                surge_multiplier:
+                  type: number
+                  example: 1.50
+                duration_minutes:
+                  type: integer
+                  example: 60
+                justification:
+                  type: string
+                  example: "Major concert egress at stadium"
+      responses:
+        '200':
+          description: Surge zone override applied
+
+  /admin/disputes/{disputeId}/resolve:
+    post:
+      summary: Resolve customer or driver dispute and trigger financial adjustment
+      operationId: resolveDispute
+      security:
+        - AdminOAuth2: [admin:disputes_write]
+      parameters:
+        - name: disputeId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - resolution
+                - refund_amount
+              properties:
+                resolution:
+                  type: string
+                  enum: [UPHELD_FULL_REFUND, UPHELD_PARTIAL_REFUND, REJECTED]
+                refund_amount:
+                  type: number
+                resolution_notes:
+                  type: string
+      responses:
+        '200':
+          description: Dispute resolved and ledger entries scheduled
+
+components:
+  securitySchemes:
+    AdminOAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.mobility-platform.io/oauth2/auth
+          tokenUrl: https://auth.mobility-platform.io/oauth2/token
+          scopes:
+            admin:surge_write: Modify surge pricing rules
+            admin:disputes_write: Settle financial disputes

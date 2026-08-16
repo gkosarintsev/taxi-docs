@@ -1,0 +1,247 @@
+openapi: 3.0.3
+info:
+  title: Mobile Gateway API (Passenger & Driver)
+  description: Edge gateway REST API for passenger ride ordering, live tracking, driver shifts, and offer handling.
+  version: 1.0.0
+servers:
+  - url: https://api.mobility-platform.io/v1
+    description: Production API Gateway
+
+paths:
+  /rides/estimate:
+    post:
+      summary: Estimate ride route, duration, and price
+      operationId: estimateRide
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EstimateRequest'
+      responses:
+        '200':
+          description: Price quote and route polyline calculated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstimateResponse'
+        '400':
+          description: Invalid coordinates or unserviceable region
+
+  /rides/create:
+    post:
+      summary: Request and book a new ride
+      operationId: createRide
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          schema:
+            type: string
+            format: uuid
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRideRequest'
+      responses:
+        '201':
+          description: Ride successfully created and entering matching phase
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RideSummary'
+        '402':
+          description: Pre-authorization payment hold failed
+
+  /rides/{rideId}/cancel:
+    post:
+      summary: Cancel active ride
+      operationId: cancelRide
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: rideId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  example: "Driver too far away"
+      responses:
+        '200':
+          description: Ride cancelled, cancellation fee response returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancellationResult'
+
+  /driver/shift/toggle:
+    post:
+      summary: Toggle driver online/offline shift status
+      operationId: toggleDriverShift
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+                - vehicle_id
+              properties:
+                status:
+                  type: string
+                  enum: [ONLINE_SEARCHING, OFFLINE, REST_BREAK]
+                vehicle_id:
+                  type: string
+      responses:
+        '200':
+          description: Shift status updated
+
+  /driver/offers/{offerId}/respond:
+    post:
+      summary: Accept or decline 15s ride offer
+      operationId: respondToOffer
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: offerId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - action
+              properties:
+                action:
+                  type: string
+                  enum: [ACCEPT, DECLINE]
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Response recorded
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    EstimateRequest:
+      type: object
+      required:
+        - pickup_location
+        - destination_location
+        - tariff_class
+      properties:
+        pickup_location:
+          $ref: '#/components/schemas/GeoPoint'
+        destination_location:
+          $ref: '#/components/schemas/GeoPoint'
+        tariff_class:
+          type: string
+          enum: [ECONOMY, COMFORT, BUSINESS, VAN]
+
+    EstimateResponse:
+      type: object
+      properties:
+        quote_token:
+          type: string
+          example: "quote_tok_88192a"
+        expires_at:
+          type: string
+          format: date-time
+        estimated_fare:
+          type: number
+          format: float
+          example: 18.50
+        currency:
+          type: string
+          example: "USD"
+        surge_multiplier:
+          type: number
+          example: 1.25
+        estimated_duration_sec:
+          type: integer
+          example: 1080
+        distance_meters:
+          type: integer
+          example: 8400
+        encoded_route_polyline:
+          type: string
+
+    CreateRideRequest:
+      type: object
+      required:
+        - quote_token
+        - payment_method_id
+      properties:
+        quote_token:
+          type: string
+        payment_method_id:
+          type: string
+        passenger_notes:
+          type: string
+
+    RideSummary:
+      type: object
+      properties:
+        ride_id:
+          type: string
+        status:
+          type: string
+          example: "MATCHING"
+        created_at:
+          type: string
+          format: date-time
+
+    CancellationResult:
+      type: object
+      properties:
+        ride_id:
+          type: string
+        fee_charged:
+          type: number
+        currency:
+          type: string
+
+    GeoPoint:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          format: double
+          example: 37.7749
+        longitude:
+          type: number
+          format: double
+          example: -122.4194
+        address_name:
+          type: string

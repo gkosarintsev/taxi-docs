@@ -1,0 +1,90 @@
+asyncapi: '2.6.0'
+info:
+  title: Surge Grid Real-Time Broadcast Stream
+  version: 1.0.0
+  description: High-throughput Kafka stream broadcasting computed H3 Resolution 7 dynamic surge multipliers every 15 seconds to edge pricing services and passenger apps.
+
+servers:
+  production-kafka:
+    url: kafka-broker.internal.mobility-platform.io:9092
+    protocol: kafka
+    description: Production Internal Kafka Cluster
+
+channels:
+  pricing.surge.grid.updates:
+    description: Partitioned stream of spatial surge multipliers keyed by city_id and H3 Resolution 7 index.
+    publish:
+      summary: Surge engine publishes 15-second batch multipliers
+      operationId: publishSurgeGridBatch
+      message:
+        $ref: '#/components/messages/SurgeGridBatchUpdate'
+
+components:
+  messages:
+    SurgeGridBatchUpdate:
+      name: SurgeGridBatchUpdate
+      title: Spatial Surge Multiplier Batch Event
+      summary: Array of updated H3 cell multipliers for a metropolitan area
+      contentType: application/json
+      payload:
+        type: object
+        required:
+          - batch_id
+          - city_id
+          - epoch_window_timestamp
+          - cell_count
+          - cells
+        properties:
+          batch_id:
+            type: string
+            format: uuid
+          city_id:
+            type: string
+            example: "city_san_francisco"
+          epoch_window_timestamp:
+            type: string
+            format: date-time
+          cell_count:
+            type: integer
+            example: 48
+          cells:
+            type: array
+            items:
+              $ref: '#/components/schemas/SurgeCellEntry'
+
+  schemas:
+    SurgeCellEntry:
+      type: object
+      required:
+        - h3_res7_index
+        - surge_multiplier
+        - pressure_ratio
+        - active_demand
+        - online_supply
+      properties:
+        h3_res7_index:
+          type: string
+          example: "871f1d488ffffff"
+        surge_multiplier:
+          type: number
+          format: float
+          description: Dynamic pricing multiplier in range [1.00, 3.50]
+          example: 1.45
+        pressure_ratio:
+          type: number
+          example: 1.82
+        active_demand:
+          type: integer
+          example: 64
+        online_supply:
+          type: integer
+          example: 35
+        weather_factor:
+          type: number
+          example: 1.15
+        traffic_delay_index:
+          type: number
+          example: 1.28
+        ttl_seconds:
+          type: integer
+          example: 30

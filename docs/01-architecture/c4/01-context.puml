@@ -1,0 +1,30 @@
+@startuml C4_Elements
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title System Context Diagram for Urban Mobility Platform (Uber-Like Architecture)
+
+Person(passenger, "Passenger", "Individual customer requesting on-demand or scheduled rides via mobile app.")
+Person(driver, "Driver Partner", "Independent driver offering transportation services, navigating and completing rides.")
+Person(b2b_manager, "B2B Fleet / Corporate Manager", "Enterprise manager overseeing corporate rides, employee allowances, and fleet telemetry.")
+Person(platform_admin, "Platform Administrator", "Internal operations, customer support, and system administrators.")
+
+System(ride_platform, "Urban Mobility Platform", "Core orchestration engine managing driver tracking, real-time matching, dynamic pricing, ride execution, and settlements.")
+
+System_Ext(payment_gateway, "Payment Service Provider (PSP)", "Stripe / Adyen / Local Acquiring banks handling pre-authorizations, 3DS, captures, and automated payouts.")
+System_Ext(map_provider, "Map & Routing Provider", "Google Maps / Mapbox / OSRM providing geocoding, tile rendering, traffic matrix, and turn-by-turn routing.")
+System_Ext(notification_provider, "Push & SMS Gateway", "Firebase Cloud Messaging (FCM), Apple Push Notification Service (APNs), Twilio for SMS and push notifications.")
+System_Ext(telemetry_iot, "Vehicle IoT / Fleet Tracker", "External OBD-II / CAN-bus GPS telemetry ingestion from connected enterprise vehicle fleets.")
+
+Rel(passenger, ride_platform, "Searches rides, views live driver locations, books rides, pays", "HTTPS / WebSocket / gRPC")
+Rel(driver, ride_platform, "Streams GPS location, receives ride offers, updates trip status", "HTTPS / WebSocket / gRPC")
+Rel(b2b_manager, ride_platform, "Manages corporate accounts, books batch rides, reviews invoices", "HTTPS")
+Rel(platform_admin, ride_platform, "Monitors platform metrics, resolves disputes, overrides surge tariffs", "HTTPS")
+
+Rel(ride_platform, payment_gateway, "Authorizes holds, captures payments, executes batch driver/fleet payouts", "HTTPS REST")
+Rel(ride_platform, map_provider, "Queries routing, distance matrix, geocoding, and map matching", "HTTPS REST / gRPC")
+Rel(ride_platform, notification_provider, "Sends push alerts, verification codes, ride status notifications", "HTTPS REST")
+Rel(telemetry_iot, ride_platform, "Pushes vehicle hardware telemetry & emergency alerts", "MQTT / HTTPS")
+
+@enduml

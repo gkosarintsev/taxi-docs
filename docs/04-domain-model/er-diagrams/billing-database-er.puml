@@ -1,0 +1,68 @@
+@startuml Billing_Database_ER
+hide circle
+skinparam linetype ortho
+
+title Billing & Double-Entry Accounting Database ER Diagram (PostgreSQL)
+
+entity "ledger_accounts" as accounts {
+    * id : UUID <<PK>>
+    --
+    * account_number : VARCHAR(64) <<UNIQUE>>
+    * owner_type : VARCHAR(32) -- RIDER, DRIVER, B2B_PARTNER, PLATFORM_REVENUE, PSP_CLEARING
+    * owner_id : UUID
+    * currency : VARCHAR(3)
+    * is_active : BOOLEAN
+    * created_at : TIMESTAMPTZ
+}
+
+entity "ledger_journals" as journals {
+    * id : UUID <<PK>>
+    --
+    * tenant_id : UUID
+    * reference_type : VARCHAR(64) -- RIDE_PAYMENT, DRIVER_PAYOUT, REFUND, CHARGEBACK
+    * reference_id : VARCHAR(128)
+    * description : TEXT
+    * posted_at : TIMESTAMPTZ
+}
+
+entity "ledger_entries" as entries {
+    * id : UUID <<PK>>
+    --
+    * journal_id : UUID <<FK>>
+    * account_id : UUID <<FK>>
+    * amount : NUMERIC(18, 4) -- Debit (+), Credit (-)
+    * currency : VARCHAR(3)
+    * created_at : TIMESTAMPTZ
+}
+
+entity "payment_transactions" as transactions {
+    * id : UUID <<PK>>
+    --
+    * ride_id : UUID
+    * user_id : UUID
+    * psp_name : VARCHAR(32) -- STRIPE, ADYEN
+    * psp_charge_id : VARCHAR(128)
+    * status : VARCHAR(32) -- HOLD_AUTHORIZED, CAPTURED, REFUNDED
+    * amount : NUMERIC(12,2)
+    * fee_amount : NUMERIC(8,2)
+    * created_at : TIMESTAMPTZ
+}
+
+entity "payout_batches" as payouts {
+    * id : UUID <<PK>>
+    --
+    * beneficiary_type : VARCHAR(32) -- DRIVER, FLEET_PARTNER
+    * beneficiary_id : UUID
+    * total_amount : NUMERIC(12,2)
+    * currency : VARCHAR(3)
+    * bank_transfer_reference : VARCHAR(128)
+    * status : VARCHAR(32) -- PENDING, PROCESSING, SUCCEEDED, FAILED
+    * settled_at : TIMESTAMPTZ
+}
+
+journals ||--|{ entries : "has balancing entries (sum=0)"
+accounts ||--o{ entries : "has ledger balance movements"
+transactions ||--o| journals : "produces journal"
+payouts ||--o| journals : "produces payout journal"
+
+@enduml

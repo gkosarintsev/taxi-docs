@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package mobility.billing.v1;
+
+option go_package = "mobility/billing/v1;billingv1";
+option java_multiple_files = true;
+option java_package = "com.mobility.billing.v1";
+
+service BillingService {
+  rpc CalculateEstimate(CalculateEstimateRequest) returns (CalculateEstimateResponse);
+  rpc AuthorizeHold(AuthorizeHoldRequest) returns (AuthorizeHoldResponse);
+  rpc CapturePayment(CapturePaymentRequest) returns (CapturePaymentResponse);
+  rpc ProcessRefund(ProcessRefundRequest) returns (ProcessRefundResponse);
+}
+
+message CalculateEstimateRequest {
+  double distance_meters = 1;
+  int32 duration_seconds = 2;
+  string pickup_h3_res7 = 3;
+  string tariff_class = 4;
+  string currency = 5;
+}
+
+message CalculateEstimateResponse {
+  string quote_token = 1;
+  double base_fare = 2;
+  double distance_fare = 3;
+  double time_fare = 4;
+  double surge_multiplier = 5;
+  double total_estimated_fare = 6;
+  int64 expires_at_unix_ms = 7;
+}
+
+message AuthorizeHoldRequest {
+  string idempotency_key = 1;
+  string user_id = 2;
+  string payment_method_id = 3;
+  double hold_amount = 4;
+  string currency = 5;
+  string order_reference = 6;
+}
+
+message AuthorizeHoldResponse {
+  string hold_id = 1;
+  bool is_authorized = 2;
+  string psp_transaction_id = 3;
+}
+
+message CapturePaymentRequest {
+  string idempotency_key = 1;
+  string hold_id = 2;
+  string order_id = 3;
+  string rider_id = 4;
+  string driver_id = 5;
+  double final_amount = 6;
+  string currency = 7;
+}
+
+message CapturePaymentResponse {
+  string journal_id = 1;
+  bool is_captured = 2;
+  double platform_fee_deducted = 3;
+  double driver_payout_accrued = 4;
+}
+
+message ProcessRefundRequest {
+  string idempotency_key = 1;
+  string journal_id = 2;
+  string reason = 3;
+  double refund_amount = 4;
+}
+
+message ProcessRefundResponse {
+  string refund_id = 1;
+  bool is_refunded = 2;
+}

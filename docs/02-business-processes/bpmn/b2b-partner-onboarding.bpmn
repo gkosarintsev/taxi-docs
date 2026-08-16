@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" 
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" 
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" 
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI" 
+                  id="Definitions_B2BOnboarding" 
+                  targetNamespace="http://bpmn.io/schema/bpmn" 
+                  exporter="Camunda Modeler" 
+                  exporterVersion="5.0.0">
+  <bpmn:process id="Process_B2BPartnerOnboarding" name="B2B Partner &amp; Corporate Fleet Onboarding" isExecutable="true">
+    <bpmn:startEvent id="Start_B2BApplication" name="Partner Submits Corporate Registration">
+      <bpmn:outgoing>Flow_ToKYC</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:serviceTask id="Task_AutomatedKYC" name="Automated Business &amp; Tax ID Verification">
+      <bpmn:incoming>Flow_ToKYC</bpmn:incoming>
+      <bpmn:outgoing>Flow_KYCCheck</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_KYCResult" name="KYC &amp; Credit Check Passed?">
+      <bpmn:incoming>Flow_KYCCheck</bpmn:incoming>
+      <bpmn:outgoing>Flow_KYCPassed</bpmn:outgoing>
+      <bpmn:outgoing>Flow_KYCFailed</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:userTask id="Task_ManualComplianceReview" name="Compliance Officer Manual Audit">
+      <bpmn:incoming>Flow_KYCFailed</bpmn:incoming>
+      <bpmn:outgoing>Flow_ManualAuditResult</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Gateway_ManualApproved" name="Approved by Compliance?">
+      <bpmn:incoming>Flow_ManualAuditResult</bpmn:incoming>
+      <bpmn:outgoing>Flow_ManualPass</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ManualReject</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="End_RejectedApplication" name="Application Rejected &amp; Notification Sent">
+      <bpmn:incoming>Flow_ManualReject</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:serviceTask id="Task_ProvisionTenant" name="Provision Multi-Tenant Account &amp; Billing Ledger">
+      <bpmn:incoming>Flow_KYCPassed</bpmn:incoming>
+      <bpmn:incoming>Flow_ManualPass</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToFleetConfig</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:userTask id="Task_ConfigureFleetVehicles" name="Register Fleet Vehicles &amp; Assign Driver Pools">
+      <bpmn:incoming>Flow_ToFleetConfig</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToDeposit</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:serviceTask id="Task_SetupBillingLine" name="Setup Post-paid Credit Line / Deposit Escrow">
+      <bpmn:incoming>Flow_ToDeposit</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToActivation</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:sendTask id="Task_IssueCredentials" name="Issue Dispatch Portal Keys &amp; SSO Invite">
+      <bpmn:incoming>Flow_ToActivation</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToFinish</bpmn:outgoing>
+    </bpmn:sendTask>
+
+    <bpmn:endEvent id="End_OnboardingComplete" name="B2B Partner Active &amp; Operational">
+      <bpmn:incoming>Flow_ToFinish</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_ToKYC" sourceRef="Start_B2BApplication" targetRef="Task_AutomatedKYC" />
+    <bpmn:sequenceFlow id="Flow_KYCCheck" sourceRef="Task_AutomatedKYC" targetRef="Gateway_KYCResult" />
+    <bpmn:sequenceFlow id="Flow_KYCPassed" name="Yes" sourceRef="Gateway_KYCResult" targetRef="Task_ProvisionTenant" />
+    <bpmn:sequenceFlow id="Flow_KYCFailed" name="Requires Audit" sourceRef="Gateway_KYCResult" targetRef="Task_ManualComplianceReview" />
+    <bpmn:sequenceFlow id="Flow_ManualAuditResult" sourceRef="Task_ManualComplianceReview" targetRef="Gateway_ManualApproved" />
+    <bpmn:sequenceFlow id="Flow_ManualPass" name="Approve" sourceRef="Gateway_ManualApproved" targetRef="Task_ProvisionTenant" />
+    <bpmn:sequenceFlow id="Flow_ManualReject" name="Reject" sourceRef="Gateway_ManualApproved" targetRef="End_RejectedApplication" />
+    <bpmn:sequenceFlow id="Flow_ToFleetConfig" sourceRef="Task_ProvisionTenant" targetRef="Task_ConfigureFleetVehicles" />
+    <bpmn:sequenceFlow id="Flow_ToDeposit" sourceRef="Task_ConfigureFleetVehicles" targetRef="Task_SetupBillingLine" />
+    <bpmn:sequenceFlow id="Flow_ToActivation" sourceRef="Task_SetupBillingLine" targetRef="Task_IssueCredentials" />
+    <bpmn:sequenceFlow id="Flow_ToFinish" sourceRef="Task_IssueCredentials" targetRef="End_OnboardingComplete" />
+  </bpmn:process>
+</bpmn:definitions>

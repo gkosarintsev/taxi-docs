@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" 
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" 
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" 
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI" 
+                  id="Definitions_DisputeResolution" 
+                  targetNamespace="http://bpmn.io/schema/bpmn" 
+                  exporter="Camunda Modeler" 
+                  exporterVersion="5.0.0">
+  <bpmn:process id="Process_DisputeResolution" name="Trip Dispute &amp; Fare Adjustment Flow" isExecutable="true">
+    <bpmn:startEvent id="Start_DisputeRaised" name="Passenger / Driver Submits Dispute">
+      <bpmn:outgoing>Flow_FetchTelemetry</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:serviceTask id="Task_FetchTripTelemetry" name="Analyze Trip Route GPS &amp; Wait Time Logs">
+      <bpmn:incoming>Flow_FetchTelemetry</bpmn:incoming>
+      <bpmn:outgoing>Flow_RunAutoAudit</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:businessRuleTask id="Task_AutomatedDisputeRules" name="Execute Rule Engine (e.g. Route Inefficiency &gt; 25%)">
+      <bpmn:incoming>Flow_RunAutoAudit</bpmn:incoming>
+      <bpmn:outgoing>Flow_CheckAutoResult</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+
+    <bpmn:exclusiveGateway id="Gateway_AutoResolved" name="Clear Auto-Resolution?">
+      <bpmn:incoming>Flow_CheckAutoResult</bpmn:incoming>
+      <bpmn:outgoing>Flow_AutoApprove</bpmn:outgoing>
+      <bpmn:outgoing>Flow_NeedsSupport</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:userTask id="Task_SupportAgentReview" name="Tier-2 Support Agent Investigation">
+      <bpmn:incoming>Flow_NeedsSupport</bpmn:incoming>
+      <bpmn:outgoing>Flow_AgentDecision</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Gateway_AgentOutcome" name="Dispute Upheld?">
+      <bpmn:incoming>Flow_AgentDecision</bpmn:incoming>
+      <bpmn:outgoing>Flow_RefundApproved</bpmn:outgoing>
+      <bpmn:outgoing>Flow_DisputeRejected</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:serviceTask id="Task_ExecuteRefund" name="Post Compensating Ledger Transaction &amp; PSP Refund">
+      <bpmn:incoming>Flow_AutoApprove</bpmn:incoming>
+      <bpmn:incoming>Flow_RefundApproved</bpmn:incoming>
+      <bpmn:outgoing>Flow_NotifyUserRefund</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:sendTask id="Task_SendResolutionNotice" name="Send Resolution Notice &amp; Push Update">
+      <bpmn:incoming>Flow_NotifyUserRefund</bpmn:incoming>
+      <bpmn:incoming>Flow_DisputeRejected</bpmn:incoming>
+      <bpmn:outgoing>Flow_EndDispute</bpmn:outgoing>
+    </bpmn:sendTask>
+
+    <bpmn:endEvent id="End_DisputeClosed" name="Dispute Closed &amp; Audited">
+      <bpmn:incoming>Flow_EndDispute</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_FetchTelemetry" sourceRef="Start_DisputeRaised" targetRef="Task_FetchTripTelemetry" />
+    <bpmn:sequenceFlow id="Flow_RunAutoAudit" sourceRef="Task_FetchTripTelemetry" targetRef="Task_AutomatedDisputeRules" />
+    <bpmn:sequenceFlow id="Flow_CheckAutoResult" sourceRef="Task_AutomatedDisputeRules" targetRef="Gateway_AutoResolved" />
+    <bpmn:sequenceFlow id="Flow_AutoApprove" name="Auto-Refund Allowed" sourceRef="Gateway_AutoResolved" targetRef="Task_ExecuteRefund" />
+    <bpmn:sequenceFlow id="Flow_NeedsSupport" name="Ambiguous Case" sourceRef="Gateway_AutoResolved" targetRef="Task_SupportAgentReview" />
+    <bpmn:sequenceFlow id="Flow_AgentDecision" sourceRef="Task_SupportAgentReview" targetRef="Gateway_AgentOutcome" />
+    <bpmn:sequenceFlow id="Flow_RefundApproved" name="Yes (Grant Refund)" sourceRef="Gateway_AgentOutcome" targetRef="Task_ExecuteRefund" />
+    <bpmn:sequenceFlow id="Flow_DisputeRejected" name="No (Reject Claim)" sourceRef="Gateway_AgentOutcome" targetRef="Task_SendResolutionNotice" />
+    <bpmn:sequenceFlow id="Flow_NotifyUserRefund" sourceRef="Task_ExecuteRefund" targetRef="Task_SendResolutionNotice" />
+    <bpmn:sequenceFlow id="Flow_EndDispute" sourceRef="Task_SendResolutionNotice" targetRef="End_DisputeClosed" />
+  </bpmn:process>
+</bpmn:definitions>

@@ -1,0 +1,34 @@
+@startuml C4_Matching_Service_Components
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Matching Service - Component Diagram (Level 3)
+
+Container(api_gw, "API Gateway", "Envoy", "Routes dispatch and quote requests via gRPC")
+ContainerDb(redis, "Spatial Cache & Locks", "Redis Cluster", "Active drivers in H3 cells & distributed locks")
+ContainerDb(kafka, "Event Bus", "Apache Kafka", "Order events and dispatch notifications")
+System_Ext(maps_api, "Routing & Distance Matrix Engine", "OSRM / Mapbox")
+
+Container_Boundary(matching_app, "Matching & Dispatch Engine") {
+    Component(grpc_server, "Matching gRPC Server", "gRPC / Protobuf", "Handles incoming RPCs: RequestMatch, CancelMatch, RejectOffer, AcceptOffer")
+    Component(batch_manager, "Batching & Auction Coordinator", "Go Goroutines / Worker Pool", "Batches ride requests in 3-5s discrete windows to optimize global assignment utility")
+    Component(candidate_filter, "Candidate Driver Filter", "Go", "Filters out offline drivers, busy drivers, drivers on rest break, or tariff mismatches")
+    Component(spatial_ranker, "Spatial & ETA Scorer", "Go / H3 Library", "Queries Redis for H3 rings, computes ETA matrix via Maps API, evaluates acceptance probability")
+    Component(surge_evaluator, "Surge Pricing Evaluator", "Go Engine", "Calculates dynamic surge multiplier based on supply/demand ratio in H3 resolution 7 cells")
+    Component(offer_dispatcher, "Offer Dispatch & Timeout Loop", "Go", "Dispatches timed offers (15s countdown) to candidate drivers sequentially or in parallel batches")
+    Component(matching_state_mgr, "Match State Machine & Lock Manager", "Go / Redis Redlock", "Prevents duplicate dispatches, manages match round state, escalation, and fallback to radius expansion")
+}
+
+Rel(api_gw, grpc_server, "Invokes match routines", "gRPC")
+Rel(grpc_server, batch_manager, "Submits incoming match request", "Internal Channel")
+Rel(batch_manager, surge_evaluator, "Fetches current cell surge multiplier", "Method call")
+Rel(batch_manager, candidate_filter, "Passes batched rides for driver discovery", "Method call")
+Rel(candidate_filter, redis, "Queries available drivers in H3 rings (kRing)", "RESP")
+Rel(candidate_filter, spatial_ranker, "Passes candidate driver list", "Method call")
+Rel(spatial_ranker, maps_api, "Requests batched distance matrix & ETA", "HTTPS / gRPC")
+Rel(spatial_ranker, offer_dispatcher, "Delivers ranked driver queue", "Method call")
+Rel(offer_dispatcher, matching_state_mgr, "Acquires lock on driver & registers 15s timer", "Redis Redlock")
+Rel(offer_dispatcher, kafka, "Publishes offer.dispatched / offer.accepted / offer.expired", "Kafka Producer")
+
+@enduml

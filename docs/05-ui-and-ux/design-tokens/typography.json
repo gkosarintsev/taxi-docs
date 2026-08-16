@@ -1,0 +1,30 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "typography": {
+    "fontFamily": {
+      "display": { "value": "Outfit, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", "type": "fontFamily" },
+      "body": { "value": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", "type": "fontFamily" },
+      "mono": { "value": "'JetBrains Mono', 'SF Mono', Consolas, monospace", "type": "fontFamily" }
+    },
+    "fontSize": {
+      "display_lg": { "value": "32px", "type": "dimension" },
+      "display_md": { "value": "24px", "type": "dimension" },
+      "title": { "value": "20px", "type": "dimension" },
+      "body_lg": { "value": "16px", "type": "dimension" },
+      "body_md": { "value": "14px", "type": "dimension" },
+      "caption": { "value": "12px", "type": "dimension" },
+      "micro": { "value": "10px", "type": "dimension" }
+    },
+    "fontWeight": {
+      "regular": { "value": "400", "type": "fontWeight" },
+      "medium": { "value": "500", "type": "fontWeight" },
+      "semibold": { "value": "600", "type": "fontWeight" },
+      "bold": { "value": "700", "type": "fontWeight" }
+    },
+    "lineHeight": {
+      "tight": { "value": "1.2", "type": "lineHeight" },
+      "normal": { "value": "1.5", "type": "lineHeight" },
+      "relaxed": { "value": "1.75", "type": "lineHeight" }
+    }
+  }
+}

@@ -1,0 +1,170 @@
+asyncapi: '2.6.0'
+info:
+  title: Safety Telemetry Alerts & Crash Detection Event Stream
+  version: 1.0.0
+  description: High-priority Kafka event stream for safety anomalies, severe IMU collision shocks, and route corridor deviations.
+
+servers:
+  production-kafka:
+    url: kafka-broker.internal.mobility-platform.io:9092
+    protocol: kafka
+    description: Production Mission-Critical Kafka Cluster
+
+channels:
+  safety.telemetry.anomalies:
+    description: Stream of real-time sensor anomalies published by the Location & Telemetry Ingestion Service.
+    publish:
+      summary: Safety alert published when IMU or GPS exceeds critical thresholds
+      operationId: publishSafetyAnomaly
+      message:
+        oneOf:
+          - $ref: '#/components/messages/CrashDetectionEvent'
+          - $ref: '#/components/messages/RouteDeviationEvent'
+          - $ref: '#/components/messages/HarshManeuverEvent'
+          - $ref: '#/components/messages/ExtendedStoppageEvent'
+
+components:
+  messages:
+    CrashDetectionEvent:
+      name: CrashDetectionEvent
+      title: Vehicle Crash & Impact Alert
+      summary: High-g impact shock detected via mobile accelerometer (>4.0g)
+      contentType: application/json
+      payload:
+        type: object
+        required:
+          - alert_id
+          - ride_id
+          - driver_id
+          - vehicle_id
+          - peak_g_force
+          - latitude
+          - longitude
+          - timestamp
+        properties:
+          alert_id:
+            type: string
+            format: uuid
+          ride_id:
+            type: string
+            format: uuid
+          driver_id:
+            type: string
+            format: uuid
+          vehicle_id:
+            type: string
+          peak_g_force:
+            type: number
+            description: Maximum accelerometer vector magnitude in g
+            example: 5.8
+          speed_at_impact_kph:
+            type: number
+            example: 52.4
+          latitude:
+            type: number
+            format: double
+            example: 37.774929
+          longitude:
+            type: number
+            format: double
+            example: -122.419416
+          timestamp:
+            type: string
+            format: date-time
+
+    RouteDeviationEvent:
+      name: RouteDeviationEvent
+      title: Route Corridor Off-Track Alert
+      summary: Vehicle deviated from planned routing corridor by more than 500 meters
+      contentType: application/json
+      payload:
+        type: object
+        required:
+          - alert_id
+          - ride_id
+          - deviation_distance_meters
+          - current_latitude
+          - current_longitude
+          - timestamp
+        properties:
+          alert_id:
+            type: string
+            format: uuid
+          ride_id:
+            type: string
+            format: uuid
+          deviation_distance_meters:
+            type: number
+            example: 740.5
+          expected_corridor_h3:
+            type: string
+            example: "881f1d488ffffff"
+          current_latitude:
+            type: number
+            format: double
+          current_longitude:
+            type: number
+            format: double
+          timestamp:
+            type: string
+            format: date-time
+
+    HarshManeuverEvent:
+      name: HarshManeuverEvent
+      title: Harsh Braking / Cornering Event
+      summary: Aggressive driving behavior telemetry event (>0.45g)
+      contentType: application/json
+      payload:
+        type: object
+        required:
+          - driver_id
+          - maneuver_type
+          - g_force
+          - timestamp
+        properties:
+          driver_id:
+            type: string
+            format: uuid
+          maneuver_type:
+            type: string
+            enum: [HARSH_BRAKING, HARSH_ACCELERATION, AGGRESSIVE_CORNERING]
+          g_force:
+            type: number
+            example: 0.52
+          timestamp:
+            type: string
+            format: date-time
+
+    ExtendedStoppageEvent:
+      name: ExtendedStoppageEvent
+      title: Unexpected Prolonged Mid-Trip Halt
+      summary: Vehicle stationary for > 3 minutes in non-traffic zone
+      contentType: application/json
+      payload:
+        type: object
+        required:
+          - ride_id
+          - stopped_duration_seconds
+          - latitude
+          - longitude
+          - timestamp
+        properties:
+          ride_id:
+            type: string
+            format: uuid
+          stopped_duration_seconds:
+            type: integer
+            example: 240
+          traffic_index_at_point:
+            type: number
+            description: 1.0 means free flow (stoppage is unexpected)
+            example: 1.02
+          latitude:
+            type: number
+            format: double
+          longitude:
+            type: number
+            format: double
+          timestamp:
+            type: string
+            format: date-time

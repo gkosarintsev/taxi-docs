@@ -1,0 +1,112 @@
+@startuml Core_Database_ER
+hide circle
+skinparam linetype ortho
+
+title Core Relational Database ER Diagram (PostgreSQL)
+
+entity "users" as users {
+    * id : UUID <<PK>>
+    --
+    * phone_number : VARCHAR(32) <<UNIQUE>>
+    * email : VARCHAR(255)
+    * full_name : VARCHAR(128)
+    * role : VARCHAR(32) -- PASSENGER, DRIVER, ADMIN
+    * rating_avg : NUMERIC(3,2)
+    * rating_count : INTEGER
+    * is_active : BOOLEAN
+    * created_at : TIMESTAMPTZ
+}
+
+entity "driver_profiles" as drivers {
+    * id : UUID <<PK>>
+    --
+    * user_id : UUID <<FK>>
+    * license_number : VARCHAR(64)
+    * kyc_status : VARCHAR(32) -- PENDING, APPROVED, REJECTED
+    * payout_account_id : VARCHAR(128)
+    * current_vehicle_id : UUID <<FK>>
+    * shift_status : VARCHAR(32) -- OFFLINE, ONLINE, BUSY
+    * acceptance_rate : NUMERIC(5,2)
+    * cancellation_rate : NUMERIC(5,2)
+}
+
+entity "vehicles" as vehicles {
+    * id : UUID <<PK>>
+    --
+    * owner_driver_id : UUID <<FK>>
+    * fleet_tenant_id : UUID <<FK>>
+    * license_plate : VARCHAR(32) <<UNIQUE>>
+    * make : VARCHAR(64)
+    * model : VARCHAR(64)
+    * year : INTEGER
+    * color : VARCHAR(32)
+    * tariff_class : VARCHAR(32) -- ECONOMY, COMFORT, BUSINESS
+    * is_verified : BOOLEAN
+}
+
+entity "rides" as rides {
+    * id : UUID <<PK>>
+    --
+    * passenger_id : UUID <<FK>>
+    * driver_id : UUID <<FK>>
+    * vehicle_id : UUID <<FK>>
+    * status : VARCHAR(32) -- DRAFT, REQUESTED, ALLOCATED, IN_PROGRESS, COMPLETED...
+    * tariff_class : VARCHAR(32)
+    * surge_multiplier : NUMERIC(4,2)
+    * estimated_fare : NUMERIC(10,2)
+    * final_fare : NUMERIC(10,2)
+    * currency : VARCHAR(3)
+    * payment_method_id : UUID
+    * psp_hold_id : VARCHAR(128)
+    * pickup_h3_res8 : VARCHAR(15)
+    * dropoff_h3_res8 : VARCHAR(15)
+    * started_at : TIMESTAMPTZ
+    * completed_at : TIMESTAMPTZ
+    * created_at : TIMESTAMPTZ
+}
+
+entity "ride_stops" as ride_stops {
+    * id : UUID <<PK>>
+    --
+    * ride_id : UUID <<FK>>
+    * stop_sequence : INTEGER
+    * stop_type : VARCHAR(32) -- PICKUP, DROPOFF, INTERMEDIATE
+    * latitude : DOUBLE PRECISION
+    * longitude : DOUBLE PRECISION
+    * address_text : TEXT
+    * planned_eta : TIMESTAMPTZ
+    * actual_arrived_at : TIMESTAMPTZ
+}
+
+entity "ride_reviews" as ride_reviews {
+    * id : UUID <<PK>>
+    --
+    * ride_id : UUID <<FK>>
+    * author_user_id : UUID <<FK>>
+    * recipient_user_id : UUID <<FK>>
+    * score : SMALLINT -- 1..5
+    * feedback_tags : VARCHAR(64)[]
+    * comment_text : TEXT
+    * created_at : TIMESTAMPTZ
+}
+
+entity "tenants_b2b" as tenants {
+    * id : UUID <<PK>>
+    --
+    * company_name : VARCHAR(128)
+    * tax_id : VARCHAR(64)
+    * credit_limit : NUMERIC(12,2)
+    * billing_email : VARCHAR(255)
+    * created_at : TIMESTAMPTZ
+}
+
+users ||--o| drivers : "has profile"
+drivers ||--o{ vehicles : "operates"
+tenants ||--o{ vehicles : "owns fleet"
+users ||--o{ rides : "books (rider)"
+drivers ||--o{ rides : "executes (driver)"
+vehicles ||--o{ rides : "assigned vehicle"
+rides ||--|{ ride_stops : "consists of"
+rides ||--o{ ride_reviews : "rated by"
+
+@enduml

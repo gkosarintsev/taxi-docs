@@ -1,0 +1,105 @@
+syntax = "proto3";
+
+package mobility.routing.v1;
+
+option go_package = "mobility/routing/v1;routingv1";
+option java_multiple_files = true;
+option java_package = "com.mobility.routing.v1";
+
+service RoutingService {
+  rpc ComputeRoute(ComputeRouteRequest) returns (ComputeRouteResponse);
+  rpc ComputeDistanceMatrix(DistanceMatrixRequest) returns (DistanceMatrixResponse);
+  rpc OptimizeMultiStopRoute(MultiStopOptimizeRequest) returns (MultiStopOptimizeResponse);
+  rpc SnapToRoads(SnapToRoadsRequest) returns (SnapToRoadsResponse);
+}
+
+message LatLng {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+message ComputeRouteRequest {
+  LatLng origin = 1;
+  LatLng destination = 2;
+  repeated LatLng waypoints = 3;
+  string vehicle_type = 4;
+  bool avoid_tolls = 5;
+  bool avoid_highways = 6;
+}
+
+message Maneuver {
+  string instruction = 1;
+  string turn_type = 2;
+  double distance_meters = 3;
+  int32 duration_seconds = 4;
+  LatLng location = 5;
+}
+
+message ComputeRouteResponse {
+  string encoded_polyline = 1;
+  double total_distance_meters = 2;
+  int32 total_duration_seconds = 3;
+  int32 baseline_graph_duration_seconds = 4;
+  int32 ml_residual_seconds = 5;
+  repeated Maneuver maneuvers = 6;
+  repeated string traversed_h3_res8 = 7;
+}
+
+message DistanceMatrixRequest {
+  repeated LatLng origins = 1;
+  repeated LatLng destinations = 2;
+}
+
+message MatrixCell {
+  int32 origin_index = 1;
+  int32 destination_index = 2;
+  double distance_meters = 3;
+  int32 duration_seconds = 4;
+  int32 traffic_delay_seconds = 5;
+}
+
+message DistanceMatrixResponse {
+  repeated MatrixCell cells = 1;
+}
+
+message WaypointTask {
+  string task_id = 1;
+  LatLng location = 2;
+  string task_type = 3; // PICKUP or DROPOFF
+  string passenger_id = 4;
+  int32 max_allowable_detour_sec = 5;
+}
+
+message MultiStopOptimizeRequest {
+  LatLng driver_current_location = 1;
+  repeated WaypointTask tasks = 2;
+}
+
+message MultiStopOptimizeResponse {
+  repeated WaypointTask optimal_sequence = 1;
+  double total_distance_meters = 2;
+  int32 total_duration_seconds = 3;
+  string encoded_composite_polyline = 4;
+}
+
+message RawCoordinateFix {
+  LatLng coordinate = 1;
+  double speed_mps = 2;
+  double bearing_deg = 3;
+  int64 timestamp_unix_ms = 4;
+  double hdop = 5;
+}
+
+message SnapToRoadsRequest {
+  repeated RawCoordinateFix trajectory = 1;
+}
+
+message SnappedPoint {
+  LatLng snapped_coordinate = 1;
+  int64 osm_way_id = 2;
+  double confidence_score = 3;
+}
+
+message SnapToRoadsResponse {
+  repeated SnappedPoint snapped_points = 1;
+}

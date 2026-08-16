@@ -1,0 +1,212 @@
+openapi: 3.0.3
+info:
+  title: Safety & Emergency SOS API
+  description: Edge gateway REST API for high-priority emergency signals, silent audio buffering, trusted contact sharing, and incident telemetry escalation.
+  version: 1.0.0
+servers:
+  - url: https://api.mobility-platform.io/v1/safety
+    description: High-Availability Dedicated Safety Gateway
+
+paths:
+  /incidents/sos:
+    post:
+      summary: Trigger emergency SOS alert from active ride
+      operationId: triggerSOS
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SOSAlertPayload'
+      responses:
+        '201':
+          description: SOS Incident created; emergency protocols initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SOSIncidentResponse'
+        '400':
+          description: Invalid telemetry payload or inactive ride
+
+  /incidents/{incidentId}/audio-stream:
+    post:
+      summary: Upload encrypted chunk of in-cabin ambient audio
+      operationId: uploadAudioChunk
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: incidentId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - sequence_number
+                - chunk_duration_ms
+                - encrypted_audio
+              properties:
+                sequence_number:
+                  type: integer
+                  example: 1
+                chunk_duration_ms:
+                  type: integer
+                  example: 5000
+                encrypted_audio:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Audio chunk ingested and appended to secure evidence storage
+
+  /rides/{rideId}/share-tracking:
+    post:
+      summary: Generate or revoke public real-time tracking link for trusted contacts
+      operationId: shareTripTracking
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: rideId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - recipient_phone_numbers
+              properties:
+                recipient_phone_numbers:
+                  type: array
+                  items:
+                    type: string
+                    example: "+14155551234"
+                custom_message:
+                  type: string
+      responses:
+        '200':
+          description: Tracking tokens generated and SMS dispatched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareTrackingResponse'
+
+  /incidents/{incidentId}/liveness-challenge/respond:
+    post:
+      summary: Respond to automated safety check / "Are you safe?" challenge
+      operationId: respondSafetyChallenge
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: incidentId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - response_code
+              properties:
+                response_code:
+                  type: string
+                  enum: [SAFE_FALSE_ALARM, CONFIRM_DISTRESS, SILENT_DURESS_PIN]
+                pin_code:
+                  type: string
+                  description: Optional secret duress PIN that silently escalates to police while displaying false "OK" on screen
+      responses:
+        '200':
+          description: Challenge response processed
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    SOSAlertPayload:
+      type: object
+      required:
+        - ride_id
+        - trigger_source
+        - latitude
+        - longitude
+      properties:
+        ride_id:
+          type: string
+          format: uuid
+        trigger_source:
+          type: string
+          enum: [PASSENGER_APP_SOS_BUTTON, DRIVER_APP_SOS_BUTTON, CRASH_IMU_AUTOMATED, ROUTE_DEVIATION_ALERT]
+        latitude:
+          type: number
+          format: double
+          example: 37.774929
+        longitude:
+          type: number
+          format: double
+          example: -122.419416
+        speed_kph:
+          type: number
+          example: 45.2
+        heading:
+          type: number
+          example: 180.0
+        distress_details:
+          type: string
+          example: "Unresponsive driver, vehicle speeding off highway"
+
+    SOSIncidentResponse:
+      type: object
+      properties:
+        incident_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [OPEN_TRIAGE, PSAP_NOTIFIED, VOICE_BRIDGE_ACTIVE, RESOLVED]
+        audio_stream_endpoint:
+          type: string
+          example: "wss://safety-stream.mobility-platform.io/v1/audio/upload"
+        safety_specialist_assigned:
+          type: string
+          example: "Agent-T991 (Ops Center SF)"
+        created_at:
+          type: string
+          format: date-time
+
+    ShareTrackingResponse:
+      type: object
+      properties:
+        tracking_token:
+          type: string
+          example: "trk_live_9921fa8b"
+        public_web_url:
+          type: string
+          example: "https://track.mobility-platform.io/trip/trk_live_9921fa8b"
+        expires_at:
+          type: string
+          format: date-time
+        recipients_notified_count:
+          type: integer
+          example: 2

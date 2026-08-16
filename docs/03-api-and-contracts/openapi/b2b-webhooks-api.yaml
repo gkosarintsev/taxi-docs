@@ -1,0 +1,208 @@
+openapi: 3.0.3
+info:
+  title: B2B Enterprise Webhooks & Expense Integration API
+  description: Webhook delivery contracts and subscription management for enterprise corporate clients and expense tracking systems (SAP Concur, Expensify).
+  version: 1.0.0
+servers:
+  - url: https://api.mobility-platform.io/v1/b2b-webhooks
+    description: Production Corporate Webhook Management Gateway
+
+paths:
+  /subscriptions:
+    post:
+      summary: Register new corporate webhook endpoint
+      operationId: createWebhookSubscription
+      security:
+        - CorporateApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookSubscriptionRequest'
+      responses:
+        '201':
+          description: Webhook subscription registered and signing secret generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookSubscriptionResponse'
+
+    get:
+      summary: List all active webhook endpoints for corporate tenant
+      operationId: listSubscriptions
+      security:
+        - CorporateApiKeyAuth: []
+      responses:
+        '200':
+          description: Active subscriptions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WebhookSubscriptionResponse'
+
+  /subscriptions/{subscriptionId}/ping:
+    post:
+      summary: Send test ping event to verify HMAC signature verification
+      operationId: pingWebhook
+      security:
+        - CorporateApiKeyAuth: []
+      parameters:
+        - in: path
+          name: subscriptionId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Test ping dispatched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  delivery_status_code:
+                    type: integer
+                    example: 200
+                  latency_ms:
+                    type: integer
+                    example: 84
+
+components:
+  securitySchemes:
+    CorporateApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Corporate-Api-Key
+
+  schemas:
+    WebhookSubscriptionRequest:
+      type: object
+      required:
+        - target_url
+        - subscribed_events
+      properties:
+        target_url:
+          type: string
+          format: uri
+          example: "https://concur-connector.acme-corp.com/webhooks/mobility"
+        subscribed_events:
+          type: array
+          items:
+            type: string
+            enum: [ride.requested, ride.started, ride.completed, ride.cancelled, monthly_statement.generated]
+        description:
+          type: string
+          example: "SAP Concur Auto-Expense Connector"
+
+    WebhookSubscriptionResponse:
+      type: object
+      properties:
+        subscription_id:
+          type: string
+          format: uuid
+        target_url:
+          type: string
+        signing_secret:
+          type: string
+          description: Shared secret used to compute HMAC-SHA256 signature in X-Mobility-Signature header
+          example: "whsec_99a81b2e3f45c67d8e9f0123"
+        subscribed_events:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [ACTIVE, SUSPENDED_FAILURE]
+        created_at:
+          type: string
+          format: date-time
+
+    CorporateRideCompletedEventPayload:
+      type: object
+      required:
+        - event_id
+        - event_type
+        - timestamp
+        - corporate_tenant_id
+        - employee
+        - ride_details
+        - financial_ledger
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        event_type:
+          type: string
+          example: "ride.completed"
+        timestamp:
+          type: string
+          format: date-time
+        corporate_tenant_id:
+          type: string
+          format: uuid
+        cost_center_code:
+          type: string
+          example: "CC-ENGINEERING-402"
+        employee:
+          type: object
+          properties:
+            employee_id:
+              type: string
+              example: "EMP-9912"
+            email:
+              type: string
+              format: email
+              example: "john.doe@acme-corp.com"
+            department:
+              type: string
+              example: "Cloud Infrastructure"
+        ride_details:
+          type: object
+          properties:
+            ride_id:
+              type: string
+              format: uuid
+            tariff_class:
+              type: string
+              example: "COMFORT"
+            pickup_address:
+              type: string
+              example: "100 Market St, San Francisco, CA"
+            dropoff_address:
+              type: string
+              example: "SFO Airport Terminal 2"
+            distance_meters:
+              type: integer
+              example: 22400
+            duration_seconds:
+              type: integer
+              example: 1680
+        financial_ledger:
+          type: object
+          properties:
+            base_fare:
+              type: number
+              example: 45.00
+            tolls_and_airport_fees:
+              type: number
+              example: 6.50
+            tax_amount:
+              type: number
+              example: 4.12
+            total_charged:
+              type: number
+              example: 55.62
+            currency:
+              type: string
+              example: "USD"
+            pdf_receipt_url:
+              type: string
+              format: uri
+              example: "https://receipts.mobility-platform.io/pdf/rec_992a18f.pdf"
+            concur_expensify_sync_status:
+              type: string
+              example: "READY_FOR_EXPORT"

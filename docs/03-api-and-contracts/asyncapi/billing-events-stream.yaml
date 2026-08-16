@@ -1,0 +1,71 @@
+asyncapi: '2.6.0'
+info:
+  title: Billing & Financial Transactions Stream Specification
+  version: 1.0.0
+  description: Event stream for payment captures, ledger postings, driver payouts, and dispute chargebacks.
+
+servers:
+  production-kafka:
+    url: kafka-broker.internal.mobility-platform.io:9092
+    protocol: kafka
+
+channels:
+  billing.transactions.events:
+    description: Stream of financial events partitioned by account_id / tenant_id.
+    subscribe:
+      summary: Financial audit and payout listener
+      operationId: consumeBillingEvents
+      message:
+        oneOf:
+          - $ref: '#/components/messages/PaymentCapturedEvent'
+          - $ref: '#/components/messages/PayoutExecutedEvent'
+
+components:
+  messages:
+    PaymentCapturedEvent:
+      name: PaymentCapturedEvent
+      payload:
+        type: object
+        required: [journal_id, order_id, rider_id, driver_id, total_amount, platform_commission, currency]
+        properties:
+          journal_id:
+            type: string
+          order_id:
+            type: string
+          rider_id:
+            type: string
+          driver_id:
+            type: string
+          total_amount:
+            type: number
+          platform_commission:
+            type: number
+          driver_gross_earnings:
+            type: number
+          currency:
+            type: string
+            example: "USD"
+          captured_at:
+            type: string
+            format: date-time
+
+    PayoutExecutedEvent:
+      name: PayoutExecutedEvent
+      payload:
+        type: object
+        required: [payout_id, beneficiary_id, amount, bank_reference, timestamp]
+        properties:
+          payout_id:
+            type: string
+          beneficiary_id:
+            type: string
+          beneficiary_type:
+            type: string
+            enum: [DRIVER, B2B_FLEET]
+          amount:
+            type: number
+          bank_reference:
+            type: string
+          timestamp:
+            type: string
+            format: date-time

@@ -1,0 +1,252 @@
+openapi: 3.0.3
+info:
+  title: Promotions & Loyalty Engine API
+  description: REST API for promo code validation, discount application, referral tracking, cashback wallets, and corporate ride vouchers.
+  version: 1.0.0
+servers:
+  - url: https://api.mobility-platform.io/v1/promotions
+    description: Production Promotions & Loyalty Gateway
+
+paths:
+  /promocodes/validate:
+    post:
+      summary: Validate promo code against current ride quote
+      operationId: validatePromoCode
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromoValidateRequest'
+      responses:
+        '200':
+          description: Promo code is valid; discount details returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromoValidationResult'
+        '404':
+          description: Promo code not found or expired
+        '422':
+          description: Promo code conditions not met (e.g., minimum fare, wrong tariff class)
+
+  /referrals/my-code:
+    get:
+      summary: Get user referral code, invite link, and performance statistics
+      operationId: getMyReferralCode
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Referral statistics and invite payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralStatsResponse'
+
+  /loyalty/wallet:
+    get:
+      summary: Get user cashback balance and active loyalty tier
+      operationId: getLoyaltyWallet
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Wallet balance and tier status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoyaltyWalletResponse'
+
+  /loyalty/wallet/transactions:
+    get:
+      summary: Get history of cashback accruals and redemptions
+      operationId: getWalletTransactions
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Paginated transaction list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletTransactionsList'
+
+  /vouchers/claim:
+    post:
+      summary: Claim corporate or marketing voucher into user wallet
+      operationId: claimVoucher
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - voucher_code
+              properties:
+                voucher_code:
+                  type: string
+                  example: "CORP-ACME-2026"
+      responses:
+        '200':
+          description: Voucher claimed and added to available payment credits
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoucherClaimResult'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    PromoValidateRequest:
+      type: object
+      required:
+        - code
+        - quote_token
+        - tariff_class
+        - base_fare
+      properties:
+        code:
+          type: string
+          example: "SUMMER20"
+        quote_token:
+          type: string
+        tariff_class:
+          type: string
+          enum: [ECONOMY, COMFORT, BUSINESS, CARPOOL]
+        base_fare:
+          type: number
+          format: float
+          example: 25.00
+
+    PromoValidationResult:
+      type: object
+      properties:
+        is_valid:
+          type: boolean
+        discount_amount:
+          type: number
+          format: float
+          example: 5.00
+        discount_type:
+          type: string
+          enum: [PERCENTAGE, FIXED_AMOUNT, FREE_UNLOCK]
+        final_fare:
+          type: number
+          format: float
+          example: 20.00
+        campaign_name:
+          type: string
+          example: "Summer City Discounts 2026"
+
+    ReferralStatsResponse:
+      type: object
+      properties:
+        referral_code:
+          type: string
+          example: "ALEX7781"
+        shareable_url:
+          type: string
+          example: "https://mobility-platform.io/invite/ALEX7781"
+        reward_per_invited_rider:
+          type: number
+          example: 10.00
+        currency:
+          type: string
+          example: "USD"
+        total_invites_sent:
+          type: integer
+          example: 14
+        successful_conversions:
+          type: integer
+          example: 8
+        total_rewards_earned:
+          type: number
+          example: 80.00
+
+    LoyaltyWalletResponse:
+      type: object
+      properties:
+        balance_amount:
+          type: number
+          format: float
+          example: 14.50
+        currency:
+          type: string
+          example: "USD"
+        loyalty_tier:
+          type: string
+          enum: [BRONZE, SILVER, GOLD, PLATINUM]
+        cashback_percentage:
+          type: number
+          example: 5.0
+        rides_to_next_tier:
+          type: integer
+          example: 3
+
+    WalletTransactionsList:
+      type: object
+      properties:
+        transactions:
+          type: array
+          items:
+            type: object
+            properties:
+              transaction_id:
+                type: string
+                format: uuid
+              type:
+                type: string
+                enum: [ACCRUAL, REDEMPTION, EXPIRATION]
+              amount:
+                type: number
+                format: float
+                example: 1.25
+              ride_id:
+                type: string
+                format: uuid
+              created_at:
+                type: string
+                format: date-time
+
+    VoucherClaimResult:
+      type: object
+      properties:
+        voucher_id:
+          type: string
+          format: uuid
+        sponsor_organization_name:
+          type: string
+          example: "Acme Corp Enterprise"
+        credit_limit_amount:
+          type: number
+          example: 100.00
+        valid_until:
+          type: string
+          format: date-time
+        geofence_restrictions:
+          type: array
+          items:
+            type: string
+            example: "San Francisco Financial District"

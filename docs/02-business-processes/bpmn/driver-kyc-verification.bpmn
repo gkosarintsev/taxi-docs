@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" 
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" 
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" 
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI" 
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                  id="Definitions_DriverKYC" 
+                  targetNamespace="http://bpmn.io/schema/bpmn" 
+                  exporter="Camunda Modeler" 
+                  exporterVersion="5.0.0">
+  <bpmn:collaboration id="Collaboration_DriverKYC">
+    <bpmn:participant id="Participant_DriverApplicant" name="Driver Partner Applicant" processRef="Process_Applicant" />
+    <bpmn:participant id="Participant_KYCPlatform" name="Automated Driver KYC &amp; Onboarding Platform" processRef="Process_DriverKYCVerification" />
+    <bpmn:messageFlow id="Flow_Msg_SubmitKYC" sourceRef="Participant_DriverApplicant" targetRef="StartEvent_KYCSubmitted" />
+    <bpmn:messageFlow id="Flow_Msg_NotifyResult" sourceRef="Task_SendApprovalNotification" targetRef="Participant_DriverApplicant" />
+    <bpmn:messageFlow id="Flow_Msg_NotifyReject" sourceRef="Task_SendRejectionNotification" targetRef="Participant_DriverApplicant" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_DriverKYCVerification" name="Driver Identity &amp; Vehicle Verification" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_KYC">
+      <bpmn:lane id="Lane_AutomatedAI" name="AI Vision &amp; OCR Engine">
+        <bpmn:flowNodeRef>StartEvent_KYCSubmitted</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ExtractDocumentOCR</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FacialBiometricsMatch</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_InspectVehiclePhotos</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_ThirdPartyIntegrations" name="Government &amp; Background Check APIs">
+        <bpmn:flowNodeRef>Task_QueryGovDrivingRegistry</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_QueryCriminalBackground</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_AutomatedScore</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_ComplianceAudit" name="Trust &amp; Safety Compliance Officer">
+        <bpmn:flowNodeRef>Task_ManualComplianceReview</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_ManualDecision</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SendRejectionNotification</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_KYCRejected</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_DriverActivation" name="Driver Account &amp; Fleet Provisioning">
+        <bpmn:flowNodeRef>Task_ProvisionDriverAccount</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SendApprovalNotification</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_KYCApproved</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="StartEvent_KYCSubmitted" name="KYC Application Submitted (ID, License, STS, Photos)">
+      <bpmn:outgoing>Flow_ToOCR</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:serviceTask id="Task_ExtractDocumentOCR" name="OCR Document Parsing &amp; MRZ Checksum Verification">
+      <bpmn:incoming>Flow_ToOCR</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToBiometrics</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_FacialBiometricsMatch" name="Liveness Detection &amp; 1:1 Selfie Face Match">
+      <bpmn:incoming>Flow_ToBiometrics</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToVehicleAI</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_InspectVehiclePhotos" name="Vehicle AI Vision Audit (Damage, Model Tier, Cleanliness)">
+      <bpmn:incoming>Flow_ToVehicleAI</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToGovRegistry</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_QueryGovDrivingRegistry" name="Verify Driver License Status &amp; Traffic Penalties">
+      <bpmn:incoming>Flow_ToGovRegistry</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToBackground</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_QueryCriminalBackground" name="Query Criminal &amp; Blacklist Databases">
+      <bpmn:incoming>Flow_ToBackground</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToScoreGateway</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_AutomatedScore" name="KYC Confidence Assessment">
+      <bpmn:incoming>Flow_ToScoreGateway</bpmn:incoming>
+      <bpmn:outgoing>Flow_ScoreHigh</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ScoreBorderline</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ScoreFraud</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:userTask id="Task_ManualComplianceReview" name="Manual Compliance &amp; Document Audit">
+      <bpmn:incoming>Flow_ScoreBorderline</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToManualDecision</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Gateway_ManualDecision" name="Auditor Approval?">
+      <bpmn:incoming>Flow_ToManualDecision</bpmn:incoming>
+      <bpmn:outgoing>Flow_ManualApproved</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ManualRejected</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:serviceTask id="Task_SendRejectionNotification" name="Log Reason &amp; Send Rejection SMS/Email">
+      <bpmn:incoming>Flow_ScoreFraud</bpmn:incoming>
+      <bpmn:incoming>Flow_ManualRejected</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToEndReject</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="EndEvent_KYCRejected" name="KYC Rejected">
+      <bpmn:incoming>Flow_ToEndReject</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:serviceTask id="Task_ProvisionDriverAccount" name="Create Driver Profile, Tax Wallet &amp; Shift Credentials">
+      <bpmn:incoming>Flow_ScoreHigh</bpmn:incoming>
+      <bpmn:incoming>Flow_ManualApproved</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToNotifyApproval</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:sendTask id="Task_SendApprovalNotification" name="Send Activation SMS &amp; App Login Push">
+      <bpmn:incoming>Flow_ToNotifyApproval</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToEndApproved</bpmn:outgoing>
+    </bpmn:sendTask>
+
+    <bpmn:endEvent id="EndEvent_KYCApproved" name="Driver Active &amp; Ready for Dispatch">
+      <bpmn:incoming>Flow_ToEndApproved</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_ToOCR" sourceRef="StartEvent_KYCSubmitted" targetRef="Task_ExtractDocumentOCR" />
+    <bpmn:sequenceFlow id="Flow_ToBiometrics" sourceRef="Task_ExtractDocumentOCR" targetRef="Task_FacialBiometricsMatch" />
+    <bpmn:sequenceFlow id="Flow_ToVehicleAI" sourceRef="Task_FacialBiometricsMatch" targetRef="Task_InspectVehiclePhotos" />
+    <bpmn:sequenceFlow id="Flow_ToGovRegistry" sourceRef="Task_InspectVehiclePhotos" targetRef="Task_QueryGovDrivingRegistry" />
+    <bpmn:sequenceFlow id="Flow_ToBackground" sourceRef="Task_QueryGovDrivingRegistry" targetRef="Task_QueryCriminalBackground" />
+    <bpmn:sequenceFlow id="Flow_ToScoreGateway" sourceRef="Task_QueryCriminalBackground" targetRef="Gateway_AutomatedScore" />
+    <bpmn:sequenceFlow id="Flow_ScoreHigh" name="High Confidence (&gt;0.92)" sourceRef="Gateway_AutomatedScore" targetRef="Task_ProvisionDriverAccount" />
+    <bpmn:sequenceFlow id="Flow_ScoreBorderline" name="Borderline / Unclear" sourceRef="Gateway_AutomatedScore" targetRef="Task_ManualComplianceReview" />
+    <bpmn:sequenceFlow id="Flow_ScoreFraud" name="Fraud / Blacklisted" sourceRef="Gateway_AutomatedScore" targetRef="Task_SendRejectionNotification" />
+    <bpmn:sequenceFlow id="Flow_ToManualDecision" sourceRef="Task_ManualComplianceReview" targetRef="Gateway_ManualDecision" />
+    <bpmn:sequenceFlow id="Flow_ManualApproved" name="Approved" sourceRef="Gateway_ManualDecision" targetRef="Task_ProvisionDriverAccount" />
+    <bpmn:sequenceFlow id="Flow_ManualRejected" name="Rejected" sourceRef="Gateway_ManualDecision" targetRef="Task_SendRejectionNotification" />
+    <bpmn:sequenceFlow id="Flow_ToEndReject" sourceRef="Task_SendRejectionNotification" targetRef="EndEvent_KYCRejected" />
+    <bpmn:sequenceFlow id="Flow_ToNotifyApproval" sourceRef="Task_ProvisionDriverAccount" targetRef="Task_SendApprovalNotification" />
+    <bpmn:sequenceFlow id="Flow_ToEndApproved" sourceRef="Task_SendApprovalNotification" targetRef="EndEvent_KYCApproved" />
+  </bpmn:process>
+
+  <bpmn:process id="Process_Applicant" isExecutable="false" />
+</bpmn:definitions>

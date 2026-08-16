@@ -1,0 +1,36 @@
+@startuml C4_Billing_Service_Components
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Billing & Financial Ledger Service - Component Diagram (Level 3)
+
+Container(api_gw, "API Gateway", "Envoy", "Routes payment/billing REST RPCs")
+ContainerDb(kafka, "Apache Kafka", "Kafka Cluster", "Events: order.completed, ride.cancelled, refund.requested")
+ContainerDb(billing_db, "Billing & Ledger DB", "PostgreSQL (Aurora Multi-AZ)", "Strict ACID double-entry ledger, invoices, payout batches")
+System_Ext(psp_stripe, "Payment Gateways (PSP)", "Stripe / Adyen / Local Cards", "Card tokenization, Pre-auth hold, 3DS, Capture, Refund")
+System_Ext(bank_payout_api, "Banking & Payout Provider", "Stripe Connect / Wise / SEPA", "Automated direct bank account/debit card payouts")
+
+Container_Boundary(billing_svc, "Billing & Financial Ledger Service") {
+    Component(fare_engine, "Dynamic Fare & Quote Engine", "Java / Spring Boot", "Calculates base fare, distance/time cost, surge multiplier, tolls, and promo discounts")
+    Component(payment_orchestrator, "Payment Orchestrator & State Machine", "Java / State Engine", "Controls payment lifecycle: Pre-auth hold -> Capture -> Split -> Ledger posting")
+    Component(psp_adapter, "PSP Gateway Adapters", "Java / Resilience4j", "Abstracts multi-acquirer integrations, smart failover, retry handling, and 3D-Secure webhooks")
+    Component(ledger_engine, "Immutable Double-Entry Ledger", "Java / JPA / SQL", "Enforces zero-sum financial balance rules across Rider, Platform, Driver, and Partner accounts")
+    Component(b2b_invoicing, "B2B Corporate Invoicing & Credit Manager", "Java Quartz Scheduler", "Aggregates corporate trip costs, enforces monthly credit limits, generates PDF invoices")
+    Component(payout_scheduler, "Driver & Fleet Payout Scheduler", "Java Batch Worker", "Calculates net driver earnings (gross minus platform commission & taxes), triggers bank payouts")
+    Component(kafka_consumer, "Billing Event Consumer", "Spring Kafka", "Consumes ride completion and dispute events to trigger automated billing workflows")
+}
+
+Rel(api_gw, fare_engine, "Request fare estimation / freeze token", "gRPC / REST")
+Rel(api_gw, payment_orchestrator, "Authorize hold on booking", "gRPC / REST")
+Rel(kafka, kafka_consumer, "Consumes order.completed / cancellation", "Kafka Consumer")
+Rel(kafka_consumer, payment_orchestrator, "Triggers capture or cancellation fee", "Internal Call")
+Rel(payment_orchestrator, psp_adapter, "Dispatches Pre-Auth Hold / Capture / Void", "Method Call")
+Rel(psp_adapter, psp_stripe, "Executes card transaction", "HTTPS REST")
+Rel(payment_orchestrator, ledger_engine, "Posts journal transaction entry", "Method Call")
+Rel(ledger_engine, billing_db, "Writes ACID double-entry ledger records", "SQL / Strict Transaction")
+Rel(payout_scheduler, ledger_engine, "Queries settled balances & updates payout status", "SQL")
+Rel(payout_scheduler, bank_payout_api, "Dispatches batch payouts", "HTTPS REST")
+Rel(b2b_invoicing, ledger_engine, "Reads corporate tenant accounts", "SQL")
+
+@enduml

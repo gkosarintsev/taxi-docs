@@ -1,0 +1,62 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "color": {
+    "brand": {
+      "primary": {
+        "value": "#0F172A",
+        "type": "color",
+        "description": "Deep midnight navy for primary buttons and high-contrast surfaces"
+      },
+      "accent": {
+        "value": "#2563EB",
+        "type": "color",
+        "description": "Vibrant royal blue for active routes, links, and primary CTA accents"
+      },
+      "surge": {
+        "value": "#EA580C",
+        "type": "color",
+        "description": "High-visibility flame orange for surge pricing badges and heatmaps"
+      }
+    },
+    "feedback": {
+      "success": {
+        "value": "#16A34A",
+        "type": "color",
+        "description": "Emerald green for driver accept buttons, completed status, and ratings"
+      },
+      "warning": {
+        "value": "#CA8A04",
+        "type": "color",
+        "description": "Amber yellow for arrival countdowns and medium urgency alerts"
+      },
+      "danger": {
+        "value": "#DC2626",
+        "type": "color",
+        "description": "Crimson red for SOS emergency pills, cancellation triggers, and errors"
+      }
+    },
+    "surface": {
+      "light": {
+        "background": { "value": "#F8FAFC", "type": "color" },
+        "card": { "value": "#FFFFFF", "type": "color" },
+        "border": { "value": "#E2E8F0", "type": "color" },
+        "text_primary": { "value": "#0F172A", "type": "color" },
+        "text_secondary": { "value": "#64748B", "type": "color" }
+      },
+      "dark": {
+        "background": { "value": "#090D16", "type": "color" },
+        "card": { "value": "#131B2E", "type": "color" },
+        "border": { "value": "#1E293B", "type": "color" },
+        "text_primary": { "value": "#F8FAFC", "type": "color" },
+        "text_secondary": { "value": "#94A3B8", "type": "color" }
+      }
+    },
+    "map": {
+      "route_normal": { "value": "#2563EB", "type": "color" },
+      "route_congested": { "value": "#DC2626", "type": "color" },
+      "pickup_marker": { "value": "#16A34A", "type": "color" },
+      "destination_marker": { "value": "#DC2626", "type": "color" },
+      "driver_marker": { "value": "#0F172A", "type": "color" }
+    }
+  }
+}

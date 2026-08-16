@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" 
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" 
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" 
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI" 
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                  id="Definitions_SafetyEscalation" 
+                  targetNamespace="http://bpmn.io/schema/bpmn" 
+                  exporter="Camunda Modeler" 
+                  exporterVersion="5.0.0">
+  <bpmn:collaboration id="Collaboration_SafetyIncident">
+    <bpmn:participant id="Participant_DistressUser" name="Passenger / Driver in Distress" processRef="Process_DistressParty" />
+    <bpmn:participant id="Participant_SafetyPlatform" name="Real-Time Safety &amp; Emergency Escalation Core" processRef="Process_SafetyIncidentEscalation" />
+    <bpmn:participant id="Participant_EmergencyServices" name="Public Safety Answering Point (PSAP / 911 / 112)" processRef="Process_EmergencyPSAP" />
+    <bpmn:messageFlow id="Flow_Msg_SOSTrigger" sourceRef="Participant_DistressUser" targetRef="StartEvent_SafetyIncidentTriggered" />
+    <bpmn:messageFlow id="Flow_Msg_PSAPDispatch" sourceRef="Task_PushTelemetryToEmergencyServices" targetRef="Participant_EmergencyServices" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_SafetyIncidentEscalation" name="Safety Incident Detection &amp; Emergency Escalation" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_Safety">
+      <bpmn:lane id="Lane_AutomatedSafetyDetection" name="Automated Telemetry &amp; Detection Engine">
+        <bpmn:flowNodeRef>StartEvent_SafetyIncidentTriggered</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_InitiateSilentAudioCapture</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_BroadcastToTrustedContacts</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TriggerAutomatedLivenessCheck</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_SafetyCheckResponse</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_FalseAlarmDismissed</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_EmergencyIntegration" name="Emergency Services (CAD) Integration">
+        <bpmn:flowNodeRef>Task_PushTelemetryToEmergencyServices</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_TrustAndSafetyCenter" name="24/7 Trust &amp; Safety Critical Response Team">
+        <bpmn:flowNodeRef>Task_OperatorLiveVoiceBridge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PreserveEvidentiaryLogs</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_IncidentStabilized</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="StartEvent_SafetyIncidentTriggered" name="Safety Trigger (SOS Button / IMU Crash &gt;4g / Route Deviation &gt;1km)">
+      <bpmn:outgoing>Flow_ToSilentCapture</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:serviceTask id="Task_InitiateSilentAudioCapture" name="Start Encrypted In-Cabin Audio Recording &amp; Telemetry High-Res Stream">
+      <bpmn:incoming>Flow_ToSilentCapture</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToBroadcastTrusted</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_BroadcastToTrustedContacts" name="SMS Real-Time Live Vehicle Tracking Link to Trusted Contacts">
+      <bpmn:incoming>Flow_ToBroadcastTrusted</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToLivenessCheck</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_TriggerAutomatedLivenessCheck" name="Send Urgent Interactive 'Are You Safe?' Prompt &amp; IVR Call">
+      <bpmn:incoming>Flow_ToLivenessCheck</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToSafetyGateway</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_SafetyCheckResponse" name="Emergency Confirmed or Unresponsive?">
+      <bpmn:incoming>Flow_ToSafetyGateway</bpmn:incoming>
+      <bpmn:outgoing>Flow_ConfirmedEmergency</bpmn:outgoing>
+      <bpmn:outgoing>Flow_FalseAlarm</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="EndEvent_FalseAlarmDismissed" name="False Alarm Resolved with Security PIN">
+      <bpmn:incoming>Flow_FalseAlarm</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:serviceTask id="Task_PushTelemetryToEmergencyServices" name="Push Telemetry &amp; Vehicle Data to Police / PSAP CAD API">
+      <bpmn:incoming>Flow_ConfirmedEmergency</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToOperatorBridge</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:userTask id="Task_OperatorLiveVoiceBridge" name="Safety Specialist Connects to Cabin Bridge &amp; Coordinates Response">
+      <bpmn:incoming>Flow_ToOperatorBridge</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToPreserveEvidence</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:serviceTask id="Task_PreserveEvidentiaryLogs" name="Freeze Account, Lock GPS Blackbox &amp; Submit Insurance Claim">
+      <bpmn:incoming>Flow_ToPreserveEvidence</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToEndIncident</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="EndEvent_IncidentStabilized" name="Emergency Managed &amp; Audit Trail Archived">
+      <bpmn:incoming>Flow_ToEndIncident</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_ToSilentCapture" sourceRef="StartEvent_SafetyIncidentTriggered" targetRef="Task_InitiateSilentAudioCapture" />
+    <bpmn:sequenceFlow id="Flow_ToBroadcastTrusted" sourceRef="Task_InitiateSilentAudioCapture" targetRef="Task_BroadcastToTrustedContacts" />
+    <bpmn:sequenceFlow id="Flow_ToLivenessCheck" sourceRef="Task_BroadcastToTrustedContacts" targetRef="Task_TriggerAutomatedLivenessCheck" />
+    <bpmn:sequenceFlow id="Flow_ToSafetyGateway" sourceRef="Task_TriggerAutomatedLivenessCheck" targetRef="Gateway_SafetyCheckResponse" />
+    <bpmn:sequenceFlow id="Flow_ConfirmedEmergency" name="Confirmed SOS / Unresponsive (30s)" sourceRef="Gateway_SafetyCheckResponse" targetRef="Task_PushTelemetryToEmergencyServices" />
+    <bpmn:sequenceFlow id="Flow_FalseAlarm" name="Safe PIN Entered" sourceRef="Gateway_SafetyCheckResponse" targetRef="EndEvent_FalseAlarmDismissed" />
+    <bpmn:sequenceFlow id="Flow_ToOperatorBridge" sourceRef="Task_PushTelemetryToEmergencyServices" targetRef="Task_OperatorLiveVoiceBridge" />
+    <bpmn:sequenceFlow id="Flow_ToPreserveEvidence" sourceRef="Task_OperatorLiveVoiceBridge" targetRef="Task_PreserveEvidentiaryLogs" />
+    <bpmn:sequenceFlow id="Flow_ToEndIncident" sourceRef="Task_PreserveEvidentiaryLogs" targetRef="EndEvent_IncidentStabilized" />
+  </bpmn:process>
+
+  <bpmn:process id="Process_DistressParty" isExecutable="false" />
+  <bpmn:process id="Process_EmergencyPSAP" isExecutable="false" />
+</bpmn:definitions>

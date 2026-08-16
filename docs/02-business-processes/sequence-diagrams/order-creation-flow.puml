@@ -1,0 +1,45 @@
+@startuml Order_Creation_Sequence
+autonumber
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+actor "Passenger App" as App
+participant "API Gateway (Envoy)" as GW
+participant "Order Service" as OrderSvc
+participant "Routing / Map Engine" as MapSvc
+participant "Pricing & Surge Service" as SurgeSvc
+participant "Billing Service" as BillSvc
+participant "PSP (Stripe / Adyen)" as PSP
+database "PostgreSQL Core DB" as DB
+queue "Kafka (order.events)" as Kafka
+
+== Step 1: Request Route & Price Estimate ==
+App -> GW: POST /api/v1/rides/estimate\n{pickup_lat/lon, dest_lat/lon, tariff_class}
+GW -> SurgeSvc: Request Route & Price Quote
+SurgeSvc -> MapSvc: Get Distance & Duration Matrix (OSRM)
+MapSvc --> SurgeSvc: Distance: 8.4 km, Duration: 18 min
+SurgeSvc -> SurgeSvc: Lookup H3 Res 7 Cell Surge Multiplier (1.4x)
+SurgeSvc -> SurgeSvc: Calculate Base + (km * rate) + (min * rate) * Surge
+SurgeSvc --> GW: Price: $18.50, Token: "quote_tok_991823", TTL: 120s
+GW --> App: Return Estimate ($18.50) & Route Polyline
+
+== Step 2: Confirm Booking & Place Pre-Auth Hold ==
+App -> GW: POST /api/v1/rides/create\n{quote_token, payment_method_id, idempotency_key}
+GW -> OrderSvc: CreateRide(CreateRideRequest)
+
+OrderSvc -> SurgeSvc: Validate Quote Token & Expiry
+SurgeSvc --> OrderSvc: Token Valid (Amount: $18.50)
+
+OrderSvc -> BillSvc: PreAuthorizeHold(userId, $18.50 * 1.15 = $21.28)
+BillSvc -> PSP: Auth Hold Request ($21.28)
+PSP --> BillSvc: Auth Succeeded (psp_hold_id: "ch_3N198")
+BillSvc --> OrderSvc: Hold Confirmed
+
+OrderSvc -> DB: INSERT INTO rides (status='REQUESTED', ...)
+DB --> OrderSvc: ride_id = "ride_77218"
+
+OrderSvc -> Kafka: Publish(topic: "order.lifecycle.events", key: "ride_77218", type: "ORDER_REQUESTED")
+OrderSvc --> GW: 201 Created {ride_id: "ride_77218", status: "MATCHING"}
+GW --> App: 201 Created (Transition UI to Searching Radar)
+
+@enduml

@@ -1,0 +1,152 @@
+openapi: 3.0.3
+info:
+  title: B2B Corporate & Fleet Management API
+  description: Enterprise REST API for corporate client booking, employee travel policies, fleet partner telematics, and invoicing.
+  version: 1.0.0
+servers:
+  - url: https://b2b.mobility-platform.io/api/v1
+    description: Production B2B Gateway
+
+paths:
+  /corporate/rides/book:
+    post:
+      summary: Book a dispatch ride for an employee or VIP guest
+      operationId: bookCorporateRide
+      security:
+        - B2BApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - employee_id
+                - pickup_location
+                - destination_location
+                - tariff_class
+                - cost_center
+              properties:
+                employee_id:
+                  type: string
+                cost_center:
+                  type: string
+                  example: "SALES-US-WEST"
+                pickup_location:
+                  $ref: '#/components/schemas/GeoLocation'
+                destination_location:
+                  $ref: '#/components/schemas/GeoLocation'
+                scheduled_pickup_time:
+                  type: string
+                  format: date-time
+                tariff_class:
+                  type: string
+                  enum: [BUSINESS, EXECUTIVE, VAN]
+      responses:
+        '201':
+          description: Corporate booking created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CorporateBooking'
+
+  /corporate/invoices/current:
+    get:
+      summary: Retrieve current billing period unbilled usage and statements
+      operationId: getCurrentStatement
+      security:
+        - B2BApiKey: []
+      responses:
+        '200':
+          description: Current billing summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceStatement'
+
+  /fleet/vehicles:
+    get:
+      summary: List registered fleet vehicles and live statuses
+      operationId: listFleetVehicles
+      security:
+        - B2BApiKey: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [ACTIVE, MAINTENANCE, SUSPENDED]
+      responses:
+        '200':
+          description: List of fleet vehicles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FleetVehicle'
+
+components:
+  securitySchemes:
+    B2BApiKey:
+      type: apiKey
+      in: header
+      name: X-B2B-API-KEY
+
+  schemas:
+    GeoLocation:
+      type: object
+      required: [latitude, longitude]
+      properties:
+        latitude:
+          type: number
+        longitude:
+          type: number
+        address:
+          type: string
+
+    CorporateBooking:
+      type: object
+      properties:
+        booking_id:
+          type: string
+        cost_center:
+          type: string
+        status:
+          type: string
+        estimated_cost:
+          type: number
+
+    InvoiceStatement:
+      type: object
+      properties:
+        tenant_id:
+          type: string
+        period_start:
+          type: string
+          format: date-time
+        period_end:
+          type: string
+          format: date-time
+        total_unbilled_amount:
+          type: number
+        credit_limit:
+          type: number
+        available_credit:
+          type: number
+
+    FleetVehicle:
+      type: object
+      properties:
+        vehicle_id:
+          type: string
+        license_plate:
+          type: string
+        make:
+          type: string
+        model:
+          type: string
+        assigned_driver_id:
+          type: string
+        status:
+          type: string

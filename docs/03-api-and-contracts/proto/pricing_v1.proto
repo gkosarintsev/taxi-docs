@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package mobility.pricing.v1;
+
+option go_package = "mobility/pricing/v1;pricingv1";
+option java_multiple_files = true;
+option java_package = "com.mobility.pricing.v1";
+
+service PricingService {
+  rpc CalculateQuote(CalculateQuoteRequest) returns (CalculateQuoteResponse);
+  rpc CalculateFinalFare(CalculateFinalFareRequest) returns (CalculateFinalFareResponse);
+  rpc GetSurgeMultiplier(GetSurgeRequest) returns (GetSurgeResponse);
+  rpc ValidatePromoDiscount(ValidatePromoRequest) returns (ValidatePromoResponse);
+}
+
+message CalculateQuoteRequest {
+  string user_id = 1;
+  string pickup_h3_res7 = 2;
+  string dropoff_h3_res7 = 3;
+  double distance_meters = 4;
+  int32 duration_seconds = 5;
+  string tariff_class = 6;
+  string promo_code = 7;
+}
+
+message FareBreakdown {
+  double base_rate = 1;
+  double distance_charge = 2;
+  double time_charge = 3;
+  double surge_multiplier = 4;
+  double surge_amount = 5;
+  double discount_amount = 6;
+  double tolls_amount = 7;
+  double platform_commission_rate = 8;
+  double net_driver_earnings_estimate = 9;
+  double final_total = 10;
+  string currency = 11;
+}
+
+message CalculateQuoteResponse {
+  string quote_token = 1;
+  int64 expires_at_unix_sec = 2;
+  FareBreakdown breakdown = 3;
+}
+
+message CalculateFinalFareRequest {
+  string ride_id = 1;
+  string quote_token = 2;
+  double actual_distance_meters = 3;
+  int32 actual_duration_seconds = 4;
+  int32 paid_waiting_time_seconds = 5;
+  double actual_tolls_amount = 6;
+  double tip_amount = 7;
+}
+
+message CalculateFinalFareResponse {
+  string ride_id = 1;
+  FareBreakdown final_breakdown = 2;
+  double rider_charge_total = 3;
+  double driver_payout_total = 4;
+  double platform_net_revenue = 5;
+}
+
+message GetSurgeRequest {
+  string h3_res7_index = 1;
+}
+
+message GetSurgeResponse {
+  string h3_res7_index = 1;
+  double multiplier = 2;
+  int64 valid_until_unix_sec = 3;
+  string demand_level = 4; // LOW, MODERATE, HIGH, CRITICAL
+}
+
+message ValidatePromoRequest {
+  string promo_code = 1;
+  string user_id = 2;
+  string tariff_class = 3;
+  double subtotal_amount = 4;
+}
+
+message ValidatePromoResponse {
+  bool is_valid = 1;
+  string rejection_reason = 2;
+  double discount_amount = 3;
+  string discount_type = 4; // FIXED, PERCENTAGE
+}

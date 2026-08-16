@@ -1,0 +1,24 @@
+@startuml B2B_Dispatch_Wireframe
+skinparam defaultFontName Arial
+skinparam roundCorner 10
+
+salt
+{+
+  {* **Mobility Enterprise Hub** | [ Active Dispatches (42) ] | [ Fleet Telemetry (120) ] | [ Invoices & Billing ] | (X) Logged as: Acme Corp Dispatcher }
+  {/ <b>Active Bookings</b> | Scheduled Trips | Vehicle Pool Map | Corporate Cost Centers }
+  {
+    {#
+      . | <b>Booking ID</b> | <b>Passenger / Employee</b> | <b>Pickup -> Dropoff</b> | <b>Tariff</b> | <b>Assigned Driver</b> | <b>ETA / Status</b> | <b>Actions</b>
+      1 | #CORP-9102 | Sarah Jenkins (VP Sales) | SFO Terminal 2 -> Downtown HQ | Business | Alex Miller (Tesla Y, #7XYZ9) | 4 min (Arriving) | [ Cancel ] [ Live GPS ]
+      2 | #CORP-9103 | David Chen (Eng Lead) | 450 Mission St -> Caltrain | Economy | Marco Rossi (Toyota Prius) | In Transit (12 min) | [ Live GPS ]
+      3 | #CORP-9104 | VIP Client Group | Grand Hyatt -> Nob Hill | Van | Unassigned (Matching) | 45s searching... | [ Re-dispatch ]
+    }
+  }
+  {
+    [+ New Corporate Booking] | [ Export Today's CSV ] | [ Surge Heatmap Toggle ]
+  }
+  {
+    <b>Fleet Telemetry Quick Overview:</b> 98 Online | 14 On Trip | 8 Maintenance | Total Today's Spend: <b>$3,420.50</b>
+  }
+}
+@enduml

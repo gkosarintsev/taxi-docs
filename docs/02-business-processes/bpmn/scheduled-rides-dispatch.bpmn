@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" 
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" 
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" 
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI" 
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                  id="Definitions_ScheduledRides" 
+                  targetNamespace="http://bpmn.io/schema/bpmn" 
+                  exporter="Camunda Modeler" 
+                  exporterVersion="5.0.0">
+  <bpmn:collaboration id="Collaboration_ScheduledRides">
+    <bpmn:participant id="Participant_Passenger" name="Passenger (Rider)" processRef="Process_PassengerScheduled" />
+    <bpmn:participant id="Participant_ScheduledEngine" name="Scheduled Rides &amp; Dispatch Subsystem" processRef="Process_ScheduledRidesDispatch" />
+    <bpmn:participant id="Participant_DriverPartner" name="Driver Partner" processRef="Process_DriverScheduled" />
+    <bpmn:messageFlow id="Flow_Msg_BookSchedule" sourceRef="Participant_Passenger" targetRef="StartEvent_ScheduleBooked" />
+    <bpmn:messageFlow id="Flow_Msg_SoftOffer" sourceRef="Task_SendSoftReservation" targetRef="Participant_DriverPartner" />
+    <bpmn:messageFlow id="Flow_Msg_LivenessPing" sourceRef="Task_PingDriverLiveness" targetRef="Participant_DriverPartner" />
+    <bpmn:messageFlow id="Flow_Msg_LivenessResponse" sourceRef="Participant_DriverPartner" targetRef="Gateway_LivenessConfirmed" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_ScheduledRidesDispatch" name="Scheduled Rides Lifecycle &amp; SLA Dispatch" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_Scheduled">
+      <bpmn:lane id="Lane_BookingAndEscrow" name="Booking &amp; Pre-Authorization">
+        <bpmn:flowNodeRef>StartEvent_ScheduleBooked</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ValidatePaymentLockQuote</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Timer_WaitUntilTMinus45</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_EarlyReservation" name="Soft Reservation (T - 45 min)">
+        <bpmn:flowNodeRef>Task_QueryScheduledDriverPool</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SendSoftReservation</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Timer_WaitUntilTMinus25</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_LivenessWatchdog" name="Liveness Watchdog &amp; Fallback (T - 25 min)">
+        <bpmn:flowNodeRef>Task_PingDriverLiveness</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_LivenessConfirmed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_UrgentDynamicFallbackDispatch</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Timer_WaitUntilTMinus15</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_HardDispatch" name="Hard Dispatch &amp; Trip Execution (T - 15 min)">
+        <bpmn:flowNodeRef>Task_LockDriverToRoute</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ExecutePickupAndRide</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_ScheduledRideCompleted</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="StartEvent_ScheduleBooked" name="Rider Requests Future Scheduled Trip (T_sched &gt; 30 min)">
+      <bpmn:outgoing>Flow_ToValidate</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:serviceTask id="Task_ValidatePaymentLockQuote" name="Lock Guaranteed Fare &amp; Schedule Delayed Job">
+      <bpmn:incoming>Flow_ToValidate</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToTimer45</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:intermediateCatchEvent id="Timer_WaitUntilTMinus45" name="Timer: T - 45 Minutes">
+      <bpmn:incoming>Flow_ToTimer45</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToQueryDrivers</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerDef_45min" />
+    </bpmn:intermediateCatchEvent>
+
+    <bpmn:serviceTask id="Task_QueryScheduledDriverPool" name="Rank Top-Tier Drivers in Future Pickup H3 Ring">
+      <bpmn:incoming>Flow_ToQueryDrivers</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToSendSoftOffer</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:sendTask id="Task_SendSoftReservation" name="Broadcast Advance Reservation Offer">
+      <bpmn:incoming>Flow_ToSendSoftOffer</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToTimer25</bpmn:outgoing>
+    </bpmn:sendTask>
+
+    <bpmn:intermediateCatchEvent id="Timer_WaitUntilTMinus25" name="Timer: T - 25 Minutes">
+      <bpmn:incoming>Flow_ToTimer25</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToPingLiveness</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerDef_25min" />
+    </bpmn:intermediateCatchEvent>
+
+    <bpmn:serviceTask id="Task_PingDriverLiveness" name="Execute Telemetry &amp; Liveness Confirmation Check">
+      <bpmn:incoming>Flow_ToPingLiveness</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToLivenessGateway</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_LivenessConfirmed" name="Driver Active &amp; Confirmed?">
+      <bpmn:incoming>Flow_ToLivenessGateway</bpmn:incoming>
+      <bpmn:outgoing>Flow_DriverAlive</bpmn:outgoing>
+      <bpmn:outgoing>Flow_DriverUnresponsive</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:serviceTask id="Task_UrgentDynamicFallbackDispatch" name="Trigger High-Priority Dynamic Auto-Dispatch Fallback">
+      <bpmn:incoming>Flow_DriverUnresponsive</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToTimer15</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:intermediateCatchEvent id="Timer_WaitUntilTMinus15" name="Timer: T - 15 Minutes">
+      <bpmn:incoming>Flow_DriverAlive</bpmn:incoming>
+      <bpmn:incoming>Flow_ToTimer15</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToHardDispatch</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerDef_15min" />
+    </bpmn:intermediateCatchEvent>
+
+    <bpmn:serviceTask id="Task_LockDriverToRoute" name="Lock Driver App into Navigation HUD Mode">
+      <bpmn:incoming>Flow_ToHardDispatch</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToTripExecution</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:userTask id="Task_ExecutePickupAndRide" name="Driver Completes On-Time Pickup &amp; Trip">
+      <bpmn:incoming>Flow_ToTripExecution</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToEndScheduled</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="EndEvent_ScheduledRideCompleted" name="Scheduled Ride Completed (100% On-Time SLA)">
+      <bpmn:incoming>Flow_ToEndScheduled</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_ToValidate" sourceRef="StartEvent_ScheduleBooked" targetRef="Task_ValidatePaymentLockQuote" />
+    <bpmn:sequenceFlow id="Flow_ToTimer45" sourceRef="Task_ValidatePaymentLockQuote" targetRef="Timer_WaitUntilTMinus45" />
+    <bpmn:sequenceFlow id="Flow_ToQueryDrivers" sourceRef="Timer_WaitUntilTMinus45" targetRef="Task_QueryScheduledDriverPool" />
+    <bpmn:sequenceFlow id="Flow_ToSendSoftOffer" sourceRef="Task_QueryScheduledDriverPool" targetRef="Task_SendSoftReservation" />
+    <bpmn:sequenceFlow id="Flow_ToTimer25" sourceRef="Task_SendSoftReservation" targetRef="Timer_WaitUntilTMinus25" />
+    <bpmn:sequenceFlow id="Flow_ToPingLiveness" sourceRef="Timer_WaitUntilTMinus25" targetRef="Task_PingDriverLiveness" />
+    <bpmn:sequenceFlow id="Flow_ToLivenessGateway" sourceRef="Task_PingDriverLiveness" targetRef="Gateway_LivenessConfirmed" />
+    <bpmn:sequenceFlow id="Flow_DriverAlive" name="Yes (En Route)" sourceRef="Gateway_LivenessConfirmed" targetRef="Timer_WaitUntilTMinus15" />
+    <bpmn:sequenceFlow id="Flow_DriverUnresponsive" name="No / Delayed" sourceRef="Gateway_LivenessConfirmed" targetRef="Task_UrgentDynamicFallbackDispatch" />
+    <bpmn:sequenceFlow id="Flow_ToTimer15" sourceRef="Task_UrgentDynamicFallbackDispatch" targetRef="Timer_WaitUntilTMinus15" />
+    <bpmn:sequenceFlow id="Flow_ToHardDispatch" sourceRef="Timer_WaitUntilTMinus15" targetRef="Task_LockDriverToRoute" />
+    <bpmn:sequenceFlow id="Flow_ToTripExecution" sourceRef="Task_LockDriverToRoute" targetRef="Task_ExecutePickupAndRide" />
+    <bpmn:sequenceFlow id="Flow_ToEndScheduled" sourceRef="Task_ExecutePickupAndRide" targetRef="EndEvent_ScheduledRideCompleted" />
+  </bpmn:process>
+
+  <bpmn:process id="Process_PassengerScheduled" isExecutable="false" />
+  <bpmn:process id="Process_DriverScheduled" isExecutable="false" />
+</bpmn:definitions>

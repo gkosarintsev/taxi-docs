@@ -1,0 +1,49 @@
+@startuml Driver_Matching_Sequence
+autonumber
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+queue "Kafka (order.lifecycle.events)" as Kafka
+participant "Matching Engine" as MatchEngine
+database "Redis Spatial Cache" as Redis
+participant "Location Service" as LocSvc
+participant "Routing Engine (OSRM)" as Routing
+participant "Notification Service" as NotifSvc
+actor "Candidate Driver App" as Driver
+database "PostgreSQL Core DB" as DB
+actor "Passenger App" as Rider
+
+== Step 1: Ingest & Candidate Discovery ==
+Kafka -> MatchEngine: Consume("ORDER_REQUESTED", ride_id="ride_77218", pickup_h3="881f1d488ffffff")
+MatchEngine -> Redis: Query available drivers in kRing(pickup_h3, radius=1..2)
+Redis --> MatchEngine: Returns [driver_101, driver_204, driver_309]
+
+MatchEngine -> Routing: Batch Distance Matrix (Drivers -> Pickup)
+Routing --> MatchEngine: [driver_101: ETA 3m, driver_204: ETA 5m, driver_309: ETA 7m]
+
+MatchEngine -> MatchEngine: Rank Drivers by Utility Score\n(Score = w1*ETA + w2*AcceptanceRate + w3*Rating)
+note right: Selected Best Driver: driver_101
+
+== Step 2: Lock Driver & Dispatch Timed Offer ==
+MatchEngine -> Redis: SET lock:driver:101 "ride_77218" NX EX 16
+Redis --> MatchEngine: Lock Acquired (Success)
+
+MatchEngine -> NotifSvc: DispatchOffer(driver_101, ride_id, payout=$14.80, eta=3m, timer=15s)
+NotifSvc -> Driver: Push/WebSocket Notification ("New Ride Offer: 15s Countdown")
+
+== Step 3: Driver Response Loop ==
+alt Driver Accepts within 15 seconds
+    Driver -> MatchEngine: POST /api/v1/driver/offers/accept {ride_id: "ride_77218"}
+    MatchEngine -> DB: UPDATE rides SET driver_id='driver_101', status='ALLOCATED' WHERE id='ride_77218'
+    MatchEngine -> Redis: SET driver:101:status "EN_ROUTE_PICKUP"
+    MatchEngine -> Kafka: Publish("ORDER_ALLOCATED", {ride_id, driver_101})
+    MatchEngine --> Driver: 200 OK (Initiate Navigation to Pickup)
+    MatchEngine -> Rider: WebSocket Event ("DRIVER_ASSIGNED", {driver_name, vehicle, eta: 3m, live_loc})
+else Driver Rejects OR 15s Timer Expires
+    Driver --x MatchEngine: POST /reject OR Timer Expired
+    MatchEngine -> Redis: DEL lock:driver:101
+    MatchEngine -> MatchEngine: Penalize driver_101 acceptance score
+    MatchEngine -> MatchEngine: Pick next candidate (driver_204) and re-dispatch offer
+end
+
+@enduml

@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package mobility.matching.v1;
+
+option go_package = "mobility/matching/v1;matchingv1";
+option java_multiple_files = true;
+option java_package = "com.mobility.matching.v1";
+
+service MatchingService {
+  rpc FindCandidates(FindCandidatesRequest) returns (FindCandidatesResponse);
+  rpc DispatchOffer(DispatchOfferRequest) returns (DispatchOfferResponse);
+  rpc CancelMatch(CancelMatchRequest) returns (CancelMatchResponse);
+}
+
+message FindCandidatesRequest {
+  string ride_id = 1;
+  string pickup_h3_res8 = 2;
+  double pickup_latitude = 3;
+  double pickup_longitude = 4;
+  string tariff_class = 5;
+  int32 max_candidates = 6;
+}
+
+message CandidateDriver {
+  string driver_id = 1;
+  string vehicle_id = 2;
+  double current_latitude = 3;
+  double current_longitude = 4;
+  int32 estimated_eta_seconds = 5;
+  double distance_meters = 6;
+  double matching_utility_score = 7;
+}
+
+message FindCandidatesResponse {
+  string ride_id = 1;
+  repeated CandidateDriver candidates = 2;
+  int32 search_ring_radius = 3;
+}
+
+message DispatchOfferRequest {
+  string ride_id = 1;
+  string driver_id = 2;
+  double guaranteed_driver_payout = 3;
+  string currency = 4;
+  int32 offer_timeout_seconds = 5;
+}
+
+message DispatchOfferResponse {
+  string offer_id = 1;
+  bool is_dispatched = 2;
+  int64 expires_at_unix_ms = 3;
+}
+
+message CancelMatchRequest {
+  string ride_id = 1;
+  string reason = 2;
+}
+
+message CancelMatchResponse {
+  bool is_cancelled = 1;
+  string message = 2;
+}

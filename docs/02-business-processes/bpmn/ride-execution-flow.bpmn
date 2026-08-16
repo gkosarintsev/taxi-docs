@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" 
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" 
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" 
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI" 
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                  id="Definitions_RideExecution" 
+                  targetNamespace="http://bpmn.io/schema/bpmn" 
+                  exporter="Camunda Modeler" 
+                  exporterVersion="5.0.0">
+  <bpmn:collaboration id="Collaboration_RideExecution">
+    <bpmn:participant id="Participant_Passenger" name="Passenger (Rider)" processRef="Process_Passenger" />
+    <bpmn:participant id="Participant_Platform" name="Urban Mobility Core Platform" processRef="Process_RideExecution" />
+    <bpmn:participant id="Participant_Driver" name="Driver Partner" processRef="Process_Driver" />
+    <bpmn:messageFlow id="Flow_Msg_RequestRide" sourceRef="Participant_Passenger" targetRef="StartEvent_RideRequested" />
+    <bpmn:messageFlow id="Flow_Msg_DispatchOffer" sourceRef="Task_DispatchOfferToDriver" targetRef="Participant_Driver" />
+    <bpmn:messageFlow id="Flow_Msg_DriverResponse" sourceRef="Participant_Driver" targetRef="Gateway_DriverResponse" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_RideExecution" name="Ride Execution Flow" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_1">
+      <bpmn:lane id="Lane_Matching" name="Matching &amp; Dispatch Engine">
+        <bpmn:flowNodeRef>StartEvent_RideRequested</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PreAuthPayment</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FindCandidateDrivers</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DispatchOfferToDriver</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_DriverResponse</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ExpandSearchRadius</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_MaxRetriesReached</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_NoDriversAvailable</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_TripManagement" name="Trip Management &amp; Tracking">
+        <bpmn:flowNodeRef>Task_DriverAssignedNotify</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TrackPickupRoute</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DriverArrivedNotify</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_StartTripCountdown</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ExecuteTripInTransit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CompleteTripAtDestination</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Billing" name="Billing &amp; Financial Settlement">
+        <bpmn:flowNodeRef>Task_CapturePaymentHold</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PostLedgerAccounting</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PromptReviewAndRating</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_RideSuccessfullyCompleted</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="StartEvent_RideRequested" name="Ride Requested &amp; Quote Locked">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:serviceTask id="Task_PreAuthPayment" name="Pre-Authorize Card Hold">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_FindCandidateDrivers" name="Query H3 Nearby Driver Pool">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:incoming>Flow_RadiusExpanded</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:sendTask id="Task_DispatchOfferToDriver" name="Dispatch 15s Timed Offer">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:sendTask>
+
+    <bpmn:eventBasedGateway id="Gateway_DriverResponse" name="Driver Decision Gateway">
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_Accepted</bpmn:outgoing>
+      <bpmn:outgoing>Flow_DeclinedOrTimeout</bpmn:outgoing>
+    </bpmn:eventBasedGateway>
+
+    <bpmn:serviceTask id="Task_ExpandSearchRadius" name="Expand H3 Search Ring (kRing+1)">
+      <bpmn:incoming>Flow_DeclinedOrTimeout</bpmn:incoming>
+      <bpmn:outgoing>Flow_CheckLimit</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_MaxRetriesReached" name="Max Match Timeout?">
+      <bpmn:incoming>Flow_CheckLimit</bpmn:incoming>
+      <bpmn:outgoing>Flow_UnderLimit</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ExceededLimit</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="EndEvent_NoDriversAvailable" name="Match Expired &amp; Release Hold">
+      <bpmn:incoming>Flow_ExceededLimit</bpmn:incoming>
+      <bpmn:errorEventDefinition id="ErrorEventDef_NoDrivers" />
+    </bpmn:endEvent>
+
+    <bpmn:serviceTask id="Task_DriverAssignedNotify" name="Assign Driver &amp; Stream Route">
+      <bpmn:incoming>Flow_Accepted</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToPickup</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:userTask id="Task_TrackPickupRoute" name="Driver En Route to Pickup Point">
+      <bpmn:incoming>Flow_ToPickup</bpmn:incoming>
+      <bpmn:outgoing>Flow_Arrived</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:serviceTask id="Task_DriverArrivedNotify" name="Driver Arrived (Start Waiting Timer)">
+      <bpmn:incoming>Flow_Arrived</bpmn:incoming>
+      <bpmn:outgoing>Flow_StartBoarding</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:userTask id="Task_StartTripCountdown" name="Passenger Boarded &amp; OTP Confirmed">
+      <bpmn:incoming>Flow_StartBoarding</bpmn:incoming>
+      <bpmn:outgoing>Flow_InTransit</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Task_ExecuteTripInTransit" name="In Transit to Drop-off Destination">
+      <bpmn:incoming>Flow_InTransit</bpmn:incoming>
+      <bpmn:outgoing>Flow_DropoffReached</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:serviceTask id="Task_CompleteTripAtDestination" name="Mark Trip Completed &amp; Calc Final Route">
+      <bpmn:incoming>Flow_DropoffReached</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToBilling</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_CapturePaymentHold" name="Capture Final Payment via PSP">
+      <bpmn:incoming>Flow_ToBilling</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToLedger</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_PostLedgerAccounting" name="Split Earnings &amp; Post Ledger Journal">
+      <bpmn:incoming>Flow_ToLedger</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToReview</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_PromptReviewAndRating" name="Send Digital Receipt &amp; Rating Prompt">
+      <bpmn:incoming>Flow_ToReview</bpmn:incoming>
+      <bpmn:outgoing>Flow_Complete</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="EndEvent_RideSuccessfullyCompleted" name="Ride Flow Finished">
+      <bpmn:incoming>Flow_Complete</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_RideRequested" targetRef="Task_PreAuthPayment" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_PreAuthPayment" targetRef="Task_FindCandidateDrivers" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_FindCandidateDrivers" targetRef="Task_DispatchOfferToDriver" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_DispatchOfferToDriver" targetRef="Gateway_DriverResponse" />
+    <bpmn:sequenceFlow id="Flow_Accepted" name="Accepted" sourceRef="Gateway_DriverResponse" targetRef="Task_DriverAssignedNotify" />
+    <bpmn:sequenceFlow id="Flow_DeclinedOrTimeout" name="Declined / Timeout" sourceRef="Gateway_DriverResponse" targetRef="Task_ExpandSearchRadius" />
+    <bpmn:sequenceFlow id="Flow_CheckLimit" sourceRef="Task_ExpandSearchRadius" targetRef="Gateway_MaxRetriesReached" />
+    <bpmn:sequenceFlow id="Flow_UnderLimit" name="Under Limit" sourceRef="Gateway_MaxRetriesReached" targetRef="Task_FindCandidateDrivers" />
+    <bpmn:sequenceFlow id="Flow_ExceededLimit" name="Timeout Exceeded" sourceRef="Gateway_MaxRetriesReached" targetRef="EndEvent_NoDriversAvailable" />
+    <bpmn:sequenceFlow id="Flow_ToPickup" sourceRef="Task_DriverAssignedNotify" targetRef="Task_TrackPickupRoute" />
+    <bpmn:sequenceFlow id="Flow_Arrived" sourceRef="Task_TrackPickupRoute" targetRef="Task_DriverArrivedNotify" />
+    <bpmn:sequenceFlow id="Flow_StartBoarding" sourceRef="Task_DriverArrivedNotify" targetRef="Task_StartTripCountdown" />
+    <bpmn:sequenceFlow id="Flow_InTransit" sourceRef="Task_StartTripCountdown" targetRef="Task_ExecuteTripInTransit" />
+    <bpmn:sequenceFlow id="Flow_DropoffReached" sourceRef="Task_ExecuteTripInTransit" targetRef="Task_CompleteTripAtDestination" />
+    <bpmn:sequenceFlow id="Flow_ToBilling" sourceRef="Task_CompleteTripAtDestination" targetRef="Task_CapturePaymentHold" />
+    <bpmn:sequenceFlow id="Flow_ToLedger" sourceRef="Task_CapturePaymentHold" targetRef="Task_PostLedgerAccounting" />
+    <bpmn:sequenceFlow id="Flow_ToReview" sourceRef="Task_PostLedgerAccounting" targetRef="Task_PromptReviewAndRating" />
+    <bpmn:sequenceFlow id="Flow_Complete" sourceRef="Task_PromptReviewAndRating" targetRef="EndEvent_RideSuccessfullyCompleted" />
+  </bpmn:process>
+
+  <bpmn:process id="Process_Passenger" isExecutable="false" />
+  <bpmn:process id="Process_Driver" isExecutable="false" />
+</bpmn:definitions>

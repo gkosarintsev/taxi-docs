@@ -1,0 +1,28 @@
+@startuml Driver_App_Screen_Flow
+skinparam defaultTextAlignment center
+skinparam roundCorner 15
+skinparam componentStyle rectangle
+
+title Driver Partner App - Screen Flow & Navigation Graph
+
+[1. Driver Home Screen\n(Offline State + "GO ONLINE" Button)] as D1
+[2. Online Radar & Shift Idle Mode\n(Heatmap Overlay + Earning Gauge)] as D2
+[3. 15-Second Ride Offer Modal\n(Fare, Pickup Distance, Rating, Timer)] as D3
+[4. Navigation to Pickup Route\n(Turn-by-Turn GPS + "Arrived" Button)] as D4
+[5. Waiting at Pickup Dwell Screen\n(3min Free Waiting Timer + OTP Pin Input)] as D5
+[6. In-Trip Navigation Screen\n(Destination Route + "Slide to Complete")] as D6
+[7. Trip Earnings Summary & Feedback] as D7
+
+D1 --> D2 : Tap "GO ONLINE" (KYC active)
+D2 --> D1 : Tap "GO OFFLINE"
+D2 --> D3 : Event: OFFER_DISPATCHED
+D3 --> D2 : Tap "Decline" or 15s Timer Expired
+D3 --> D4 : Tap "Accept" within 15s
+D4 --> D5 : Tap "I Have Arrived" (Geofence <50m)
+D5 --> D6 : Enter 4-digit Rider OTP & tap "Start Trip"
+D5 --> D2 : Rider No-Show Cancel (>5min)
+D6 --> D7 : Slide "Complete Trip" at destination
+D7 --> D2 : Tap "Continue Shift"
+D7 --> D1 : Tap "Finish Shift & Go Offline"
+
+@enduml

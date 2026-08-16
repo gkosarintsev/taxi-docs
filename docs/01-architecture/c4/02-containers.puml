@@ -1,0 +1,73 @@
+@startuml C4_Containers
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Container Diagram for Urban Mobility Platform (Level 2)
+
+Person(passenger, "Passenger", "Mobile App User")
+Person(driver, "Driver Partner", "Driver App User")
+Person(b2b_user, "B2B Dispatcher / Manager", "Web Portal User")
+Person(admin_user, "Platform Admin", "Admin Console User")
+
+System_Boundary(c1, "Urban Mobility Platform") {
+    Container(passenger_app, "Passenger Mobile App", "Flutter / Swift / Kotlin", "Allows riders to request rides, view surge prices, track drivers live, and manage payments.")
+    Container(driver_app, "Driver Mobile App", "Flutter / Swift / Kotlin", "Streams location telemetry at 1-3s intervals, receives bid offers, turn-by-turn navigation.")
+    Container(b2b_web, "B2B Dispatch & Fleet Portal", "React / Next.js / TypeScript", "Web app for corporate employee booking, fleet analytics, and invoice settlements.")
+    Container(admin_web, "Admin & Operations Portal", "React / TypeScript", "Internal portal for manual dispatches, dispute handling, surge zoning, and KYC verification.")
+
+    Container(api_gateway, "Edge API Gateway & WebSocket Router", "Envoy / Go / Kong", "TLS termination, auth token validation, rate-limiting, gRPC-web, and WebSocket connection multiplexing.")
+
+    Container(location_service, "Location & Geospatial Ingestion Service", "Go / Rust", "Ingests 50k+ GPS updates/sec, dead-reckoning, map-matching, and H3 hexagonal spatial indexing.")
+    Container(matching_service, "Matching & Dispatch Engine", "Go / Java", "Batching auction engine, candidate ranking, surge computation, and offer dispatch loop.")
+    Container(order_service, "Order & Trip Lifecycle Service", "Go / Kotlin", "Maintains ride state machine, stops routing, trip metrics, and driver-rider assignments.")
+    Container(billing_service, "Billing & Financial Ledger Service", "Java / Spring Boot / Go", "Double-entry accounting, fare calculation, hold authorisations, PSP integrations, and driver payouts.")
+    Container(user_service, "User & Driver Management Service", "Node.js / Go", "User identity, KYC document verification, vehicle profiles, and driver shifts.")
+    Container(notification_service, "Notification & Comms Gateway", "Go / Node.js", "Multiplexes push notifications (APNs/FCM), SMS (Twilio), and in-app alerts.")
+
+    ContainerDb(redis_cluster, "Spatial Cache & Session Store", "Redis Enterprise Cluster", "Stores real-time driver coordinates (H3 indexed), ephemeral order locks, and token sessions.")
+    ContainerDb(kafka_cluster, "Event Streaming Bus", "Apache Kafka / Confluent", "High-throughput event topics: driver.telemetry, order.events, billing.events, dispatch.events.")
+    ContainerDb(core_db, "Core Relational Database", "PostgreSQL (Aurora Multi-AZ)", "Users, drivers, vehicle profiles, trips, tariffs, and tenant configs.")
+    ContainerDb(billing_db, "Billing & Ledger Database", "PostgreSQL (ACID Strict)", "Immutable double-entry ledger accounts, transactions, payment methods, and invoices.")
+    ContainerDb(analytics_db, "Analytical & Telemetry Store", "ClickHouse / AWS Redshift", "Historical ride tracks, telemetry logs, conversion funnels, and pricing telemetry.")
+}
+
+System_Ext(psp, "Payment Service Provider", "Stripe / Adyen / Local Acquiring")
+System_Ext(maps, "Maps & Geocoding API", "Google Maps / Mapbox / OSRM")
+System_Ext(fcm, "Push Notification Service", "FCM / APNs")
+
+Rel(passenger, passenger_app, "Uses", "HTTPS")
+Rel(driver, driver_app, "Uses", "HTTPS")
+Rel(b2b_user, b2b_web, "Uses", "HTTPS")
+Rel(admin_user, admin_web, "Uses", "HTTPS")
+
+Rel(passenger_app, api_gateway, "REST / WebSocket", "JSON / HTTPS / WSS")
+Rel(driver_app, api_gateway, "gRPC / WSS Stream", "Protobuf / TLS")
+Rel(b2b_web, api_gateway, "REST API", "JSON / HTTPS")
+Rel(admin_web, api_gateway, "REST API", "JSON / HTTPS")
+
+Rel(api_gateway, location_service, "Forwards GPS stream", "gRPC / Protobuf")
+Rel(api_gateway, matching_service, "Ride search / Quotes", "gRPC / REST")
+Rel(api_gateway, order_service, "Trip lifecycle RPCs", "gRPC / REST")
+Rel(api_gateway, billing_service, "Payment RPCs", "gRPC / REST")
+Rel(api_gateway, user_service, "Auth / Profile RPCs", "gRPC / REST")
+
+Rel(location_service, redis_cluster, "Reads / Writes spatial indexes (H3)", "RESP")
+Rel(location_service, kafka_cluster, "Publishes raw driver location stream", "driver.telemetry")
+
+Rel(matching_service, redis_cluster, "Queries nearby candidate drivers", "H3 Cell lookup")
+Rel(matching_service, maps, "Calculates ETAs & distance matrices", "HTTPS / gRPC")
+Rel(matching_service, kafka_cluster, "Publishes match events & receives requests", "Kafka pub/sub")
+
+Rel(order_service, core_db, "Reads/Writes ride states", "SQL / TCP")
+Rel(order_service, kafka_cluster, "Publishes order.status_changed", "Kafka")
+Rel(order_service, notification_service, "Triggers trip updates", "gRPC")
+
+Rel(billing_service, billing_db, "Executes transactional ledger entries", "SQL / ACID")
+Rel(billing_service, psp, "Performs hold/capture/payouts", "HTTPS")
+Rel(billing_service, kafka_cluster, "Listens to order completion & publishes billing.events", "Kafka")
+
+Rel(notification_service, fcm, "Dispatches push alerts", "HTTPS")
+Rel(kafka_cluster, analytics_db, "Kafka Connect CDC pipeline", "Batch streaming")
+
+@enduml

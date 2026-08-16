@@ -1,0 +1,66 @@
+@startuml Location_Database_ER
+hide circle
+skinparam linetype ortho
+
+title Location & Spatial Database ER Diagram (Redis + ClickHouse + PostGIS)
+
+entity "spatial_h3_cells (Redis Set / Memory)" as h3_cells {
+    * cell_index_res8 : VARCHAR(15) <<PK>>
+    --
+    * active_driver_ids : SET<UUID>
+    * demand_score : FLOAT
+    * supply_count : INTEGER
+    * surge_multiplier : NUMERIC(4,2)
+    * updated_at : TIMESTAMP
+}
+
+entity "driver_live_states (Redis Hash)" as driver_live {
+    * driver_id : UUID <<PK>>
+    --
+    * current_h3_res8 : VARCHAR(15)
+    * latitude : DOUBLE PRECISION
+    * longitude : DOUBLE PRECISION
+    * bearing : FLOAT
+    * speed_kph : FLOAT
+    * status : VARCHAR(32)
+    * last_ping_at : TIMESTAMP
+}
+
+entity "driver_shifts (PostgreSQL)" as driver_shifts {
+    * id : UUID <<PK>>
+    --
+    * driver_id : UUID
+    * started_at : TIMESTAMPTZ
+    * ended_at : TIMESTAMPTZ
+    * total_online_minutes : INTEGER
+    * total_trips_completed : INTEGER
+    * total_km_travelled : NUMERIC(8,2)
+}
+
+entity "trip_trajectories (ClickHouse OLAP)" as trajectories {
+    * ride_id : UUID
+    * point_time : DateTime64(3)
+    --
+    * latitude : Float64
+    * longitude : Float64
+    * speed_kph : Float32
+    * bearing : Float32
+    * altitude : Float32
+    * road_segment_id : UInt64
+    * is_snapped : UInt8
+}
+
+entity "geofences_and_tariffs (PostGIS)" as geofences {
+    * id : UUID <<PK>>
+    --
+    * name : VARCHAR(64)
+    * polygon_geom : GEOMETRY(Polygon, 4326)
+    * tariff_zone_id : UUID
+    * is_airport_zone : BOOLEAN
+    * surcharge_amount : NUMERIC(8,2)
+}
+
+h3_cells ||--o{ driver_live : "contains active drivers"
+driver_shifts ||--o{ trajectories : "records trip trajectory"
+
+@enduml

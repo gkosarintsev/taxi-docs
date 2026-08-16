@@ -1,0 +1,314 @@
+openapi: 3.0.3
+info:
+  title: Driver Partner Onboarding & KYC API
+  description: REST API for driver registration, identity verification, vehicle document uploads, fleet affiliation, and KYC audit lifecycle.
+  version: 1.0.0
+servers:
+  - url: https://api.mobility-platform.io/v1/driver-onboarding
+    description: Production Driver Onboarding Edge Gateway
+
+paths:
+  /applications/start:
+    post:
+      summary: Start new driver onboarding application
+      operationId: startApplication
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartApplicationRequest'
+      responses:
+        '201':
+          description: Application initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationStatusResponse'
+        '409':
+          description: Driver phone or tax ID already registered
+
+  /applications/{applicationId}/documents:
+    post:
+      summary: Upload identity or vehicle document for OCR parsing
+      operationId: uploadDocument
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: applicationId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - document_type
+                - file
+              properties:
+                document_type:
+                  type: string
+                  enum: [DRIVERS_LICENSE_FRONT, DRIVERS_LICENSE_BACK, PASSPORT_MAIN, VEHICLE_REGISTRATION_STS, VEHICLE_INSURANCE_POLICY]
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '202':
+          description: Document uploaded and queued for async OCR processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentUploadResult'
+
+  /applications/{applicationId}/biometrics/verify-selfie:
+    post:
+      summary: Submit facial selfie with liveness detection token
+      operationId: verifyBiometricsSelfie
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: applicationId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - liveness_session_id
+                - selfie_image_base64
+              properties:
+                liveness_session_id:
+                  type: string
+                selfie_image_base64:
+                  type: string
+      responses:
+        '200':
+          description: Biometric match evaluated against driver license photo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BiometricVerificationResult'
+
+  /applications/{applicationId}/vehicle-photos:
+    post:
+      summary: Upload 4-angle vehicle exterior and interior photos for AI damage audit
+      operationId: uploadVehiclePhotos
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: applicationId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehiclePhotosPayload'
+      responses:
+        '200':
+          description: AI vehicle inspection completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleInspectionResult'
+
+  /applications/{applicationId}/select-fleet:
+    post:
+      summary: Choose independent contractor or affiliated B2B taxi fleet park
+      operationId: selectFleet
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: applicationId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - affiliation_type
+              properties:
+                affiliation_type:
+                  type: string
+                  enum: [INDIVIDUAL_ENTREPRENEUR, DIRECT_FLEET_PARK]
+                fleet_partner_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Fleet affiliation assigned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationStatusResponse'
+
+  /applications/{applicationId}/status:
+    get:
+      summary: Poll current KYC verification status and missing requirements
+      operationId: getApplicationStatus
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: applicationId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detailed verification state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationStatusResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    StartApplicationRequest:
+      type: object
+      required:
+        - phone_number
+        - country_code
+        - city_id
+        - tariff_classes_applied
+      properties:
+        phone_number:
+          type: string
+          example: "+14155552671"
+        country_code:
+          type: string
+          example: "US"
+        city_id:
+          type: string
+          example: "city_san_francisco"
+        tariff_classes_applied:
+          type: array
+          items:
+            type: string
+            enum: [ECONOMY, COMFORT, BUSINESS, CARPOOL]
+
+    ApplicationStatusResponse:
+      type: object
+      properties:
+        application_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [DRAFT, DOCUMENTS_PENDING, UNDER_AI_REVIEW, MANUAL_AUDIT, APPROVED_ACTIVE, REJECTED]
+        overall_confidence_score:
+          type: number
+          format: float
+          example: 0.94
+        missing_steps:
+          type: array
+          items:
+            type: string
+            example: "VEHICLE_PHOTOS"
+        rejection_reasons:
+          type: array
+          items:
+            type: string
+        updated_at:
+          type: string
+          format: date-time
+
+    DocumentUploadResult:
+      type: object
+      properties:
+        document_id:
+          type: string
+          format: uuid
+        document_type:
+          type: string
+        extracted_data:
+          type: object
+          properties:
+            license_number:
+              type: string
+            full_name:
+              type: string
+            expiration_date:
+              type: string
+              format: date
+            mrz_valid:
+              type: boolean
+
+    BiometricVerificationResult:
+      type: object
+      properties:
+        liveness_passed:
+          type: boolean
+        face_match_confidence:
+          type: number
+          example: 0.985
+        anti_spoofing_score:
+          type: number
+          example: 0.992
+
+    VehiclePhotosPayload:
+      type: object
+      required:
+        - photo_front_url
+        - photo_rear_url
+        - photo_left_side_url
+        - photo_right_side_url
+        - photo_interior_url
+      properties:
+        photo_front_url:
+          type: string
+        photo_rear_url:
+          type: string
+        photo_left_side_url:
+          type: string
+        photo_right_side_url:
+          type: string
+        photo_interior_url:
+          type: string
+
+    VehicleInspectionResult:
+      type: object
+      properties:
+        passed_cleanliness_check:
+          type: boolean
+        detected_dents_count:
+          type: integer
+          example: 0
+        detected_make_model:
+          type: string
+          example: "Toyota Camry 2023"
+        eligible_tariff_classes:
+          type: array
+          items:
+            type: string
+            example: "COMFORT"

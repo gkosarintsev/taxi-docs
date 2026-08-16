@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" 
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" 
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" 
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI" 
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                  id="Definitions_CarpoolShared" 
+                  targetNamespace="http://bpmn.io/schema/bpmn" 
+                  exporter="Camunda Modeler" 
+                  exporterVersion="5.0.0">
+  <bpmn:collaboration id="Collaboration_CarpoolShared">
+    <bpmn:participant id="Participant_RiderA" name="Passenger A (Primary Rider)" processRef="Process_RiderA" />
+    <bpmn:participant id="Participant_CarpoolEngine" name="Carpool &amp; Shared Ride Dynamic Orchestrator" processRef="Process_CarpoolSharedRides" />
+    <bpmn:participant id="Participant_RiderB" name="Passenger B (Co-Rider)" processRef="Process_RiderB" />
+    <bpmn:participant id="Participant_SharedDriver" name="Shared Driver Partner" processRef="Process_SharedDriver" />
+    <bpmn:messageFlow id="Flow_Msg_RiderARequest" sourceRef="Participant_RiderA" targetRef="StartEvent_SharedRideInitiated" />
+    <bpmn:messageFlow id="Flow_Msg_RiderBRequest" sourceRef="Participant_RiderB" targetRef="Task_EvaluateDynamicCarpoolMatch" />
+    <bpmn:messageFlow id="Flow_Msg_DriverReroute" sourceRef="Task_UpdateDriverMultiStopNav" targetRef="Participant_SharedDriver" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_CarpoolSharedRides" name="Carpool Dynamic Matching &amp; Multi-Stop Routing" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_Carpool">
+      <bpmn:lane id="Lane_TrajectoryMatching" name="Spatial Trajectory &amp; Overlap Evaluation">
+        <bpmn:flowNodeRef>StartEvent_SharedRideInitiated</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_EvaluateDynamicCarpoolMatch</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_DetourConstraints</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FallbackSingleRide</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_DynamicRouting" name="Dynamic Multi-Stop Route Optimizer">
+        <bpmn:flowNodeRef>Task_ComputeOptimalWaypointSequence</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_NotifyRiderAUpdate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_UpdateDriverMultiStopNav</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_SharedExecution" name="Multi-Passenger Ride Execution">
+        <bpmn:flowNodeRef>Task_PickupPassengerB</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DropoffSequences</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_SplitBilling" name="Independent Proportional Billing">
+        <bpmn:flowNodeRef>Task_CalculateProportionalSplitFares</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_CarpoolCompleted</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="StartEvent_SharedRideInitiated" name="Rider A Requests Shared Carpool Option">
+      <bpmn:outgoing>Flow_ToActiveTripA</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:serviceTask id="Task_EvaluateDynamicCarpoolMatch" name="Evaluate Trajectory Overlap (&gt;65%) &amp; Max Detour (&lt;4 min)">
+      <bpmn:incoming>Flow_ToActiveTripA</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToDetourCheck</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_DetourConstraints" name="Match Meets Carpool SLA?">
+      <bpmn:incoming>Flow_ToDetourCheck</bpmn:incoming>
+      <bpmn:outgoing>Flow_MatchApproved</bpmn:outgoing>
+      <bpmn:outgoing>Flow_MatchRejected</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:serviceTask id="Task_FallbackSingleRide" name="Maintain Solo Transit for Rider A &amp; Queue Rider B for Next Driver">
+      <bpmn:incoming>Flow_MatchRejected</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToSoloFinish</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_ComputeOptimalWaypointSequence" name="Solve Traveling Salesperson Multi-Stop Path (P_A &gt; P_B &gt; D_A &gt; D_B)">
+      <bpmn:incoming>Flow_MatchApproved</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToNotifyRiderA</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:sendTask id="Task_NotifyRiderAUpdate" name="Notify Rider A of Co-Rider Pickup &amp; Updated ETA Adjustment">
+      <bpmn:incoming>Flow_ToNotifyRiderA</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToRerouteDriver</bpmn:outgoing>
+    </bpmn:sendTask>
+
+    <bpmn:serviceTask id="Task_UpdateDriverMultiStopNav" name="Push Turn-by-Turn Dynamic Waypoint Navigation to Driver HUD">
+      <bpmn:incoming>Flow_ToRerouteDriver</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToPickupB</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:userTask id="Task_PickupPassengerB" name="Driver Arrives at Pickup B &amp; Verifies Rider B OTP Code">
+      <bpmn:incoming>Flow_ToPickupB</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToDropoffs</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Task_DropoffSequences" name="Driver Completes Sequential Drop-offs for Both Riders">
+      <bpmn:incoming>Flow_ToDropoffs</bpmn:incoming>
+      <bpmn:incoming>Flow_ToSoloFinish</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToSplitBilling</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:serviceTask id="Task_CalculateProportionalSplitFares" name="Apply 25% Carpool Discount to Riders &amp; Post Driver Shared Bonus Ledger">
+      <bpmn:incoming>Flow_ToSplitBilling</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToEndCarpool</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="EndEvent_CarpoolCompleted" name="Shared Rides Successfully Settled">
+      <bpmn:incoming>Flow_ToEndCarpool</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_ToActiveTripA" sourceRef="StartEvent_SharedRideInitiated" targetRef="Task_EvaluateDynamicCarpoolMatch" />
+    <bpmn:sequenceFlow id="Flow_ToDetourCheck" sourceRef="Task_EvaluateDynamicCarpoolMatch" targetRef="Gateway_DetourConstraints" />
+    <bpmn:sequenceFlow id="Flow_MatchApproved" name="Yes (Overlap &gt;= 65%)" sourceRef="Gateway_DetourConstraints" targetRef="Task_ComputeOptimalWaypointSequence" />
+    <bpmn:sequenceFlow id="Flow_MatchRejected" name="No (Excessive Detour)" sourceRef="Gateway_DetourConstraints" targetRef="Task_FallbackSingleRide" />
+    <bpmn:sequenceFlow id="Flow_ToSoloFinish" sourceRef="Task_FallbackSingleRide" targetRef="Task_DropoffSequences" />
+    <bpmn:sequenceFlow id="Flow_ToNotifyRiderA" sourceRef="Task_ComputeOptimalWaypointSequence" targetRef="Task_NotifyRiderAUpdate" />
+    <bpmn:sequenceFlow id="Flow_ToRerouteDriver" sourceRef="Task_NotifyRiderAUpdate" targetRef="Task_UpdateDriverMultiStopNav" />
+    <bpmn:sequenceFlow id="Flow_ToPickupB" sourceRef="Task_UpdateDriverMultiStopNav" targetRef="Task_PickupPassengerB" />
+    <bpmn:sequenceFlow id="Flow_ToDropoffs" sourceRef="Task_PickupPassengerB" targetRef="Task_DropoffSequences" />
+    <bpmn:sequenceFlow id="Flow_ToSplitBilling" sourceRef="Task_DropoffSequences" targetRef="Task_CalculateProportionalSplitFares" />
+    <bpmn:sequenceFlow id="Flow_ToEndCarpool" sourceRef="Task_CalculateProportionalSplitFares" targetRef="EndEvent_CarpoolCompleted" />
+  </bpmn:process>
+
+  <bpmn:process id="Process_RiderA" isExecutable="false" />
+  <bpmn:process id="Process_RiderB" isExecutable="false" />
+  <bpmn:process id="Process_SharedDriver" isExecutable="false" />
+</bpmn:definitions>

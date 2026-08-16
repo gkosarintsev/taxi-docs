@@ -1,0 +1,34 @@
+@startuml Driver_KYC_Upload_Screen_Flow
+skinparam defaultTextAlignment center
+skinparam roundCorner 15
+skinparam componentStyle rectangle
+
+title Driver Partner KYC & Vehicle Photo-Inspection Screen Flow
+
+[1. Registration & Phone OTP\n(Country Code + SMS Verification)] as K1
+[2. Personal Identity & License Form\n(Name, DOB, Tax ID / SSN)] as K2
+[3. Driver's License Camera Scanner\n(Front & Back with Edge Detection + Anti-Glare)] as K3
+[4. Biometric Facial Liveness Check\n(Active Video Selfie: Blink & Turn Head)] as K4
+[5. Vehicle Registration & Insurance\n(STS & Commercial Policy Document Upload)] as K5
+[6. 4-Angle Exterior Photo Inspection\n(Front, Rear, Left, Right Assisted Overlay)] as K6
+[7. In-Cabin Interior Cleanliness Photo\n(Seats, Dash & Clean Trunk Verification)] as K7
+[8. Fleet Affiliation & Payout Account\n(Direct Contractor vs Partner Park + Bank Account)] as K8
+[9. KYC Audit Processing Radar\n(Real-Time AI Verification Status: ~2-5 min)] as K9
+[10. Verification Approved & Active\n(Push Notification + 'GO ONLINE' Enabled)] as K10
+[11. Verification Rejected / Re-upload\n(Highlight Blurry Photo / Expired Document)] as K11
+
+K1 --> K2 : Phone Verified
+K2 --> K3 : Tap "Scan License"
+K3 --> K4 : License OCR Captured
+K4 --> K5 : Liveness Confirmed
+K5 --> K6 : Vehicle Docs Stored
+K6 --> K7 : 4 Angles Captured (AI Approved)
+K7 --> K8 : Interior Verified
+K8 --> K9 : Submit Full Application
+K9 --> K10 : AI / Manual Review Passed (Confidence > 0.92)
+K9 --> K11 : Photo Blurry / Expired License
+K11 --> K3 : Retake License Scan
+K11 --> K6 : Retake Vehicle Photos
+K10 --> [Driver Home Online Shift] : Tap "Start Driving"
+
+@enduml

@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package mobility.fraud.v1;
+
+option go_package = "mobility/fraud/v1;fraudv1";
+option java_multiple_files = true;
+option java_package = "com.mobility.fraud.v1";
+
+service FraudService {
+  rpc EvaluateLocationIntegrity(LocationIntegrityRequest) returns (LocationIntegrityResponse);
+  rpc EvaluateRideCollusion(RideCollusionRequest) returns (RideCollusionResponse);
+  rpc AssessAccountRisk(AccountRiskRequest) returns (AccountRiskResponse);
+  rpc ReportSuspiciousIncident(ReportIncidentRequest) returns (ReportIncidentResponse);
+}
+
+message DeviceFingerprint {
+  string device_id = 1;
+  string os_version = 2;
+  bool is_rooted_or_jailbroken = 3;
+  bool is_mock_location_app_detected = 4;
+  bool is_emulator = 5;
+  string ip_address = 6;
+  string wifi_bssid_hash = 7;
+}
+
+message LocationIntegrityRequest {
+  string entity_id = 1; // driver_id or user_id
+  string entity_type = 2; // DRIVER or RIDER
+  double latitude = 3;
+  double longitude = 4;
+  double speed_kph = 5;
+  double altitude_meters = 6;
+  int64 timestamp_unix_ms = 7;
+  DeviceFingerprint device = 8;
+  double previous_latitude = 9;
+  double previous_longitude = 10;
+  int64 previous_timestamp_unix_ms = 11;
+}
+
+message LocationIntegrityResponse {
+  bool is_valid = 1;
+  double spoofing_probability = 2;
+  repeated string anomaly_flags = 3; // e.g., "IMPOSSIBLE_SPEED_TELEPORT", "MOCK_PROVIDER_ENABLED", "ZERO_ALTITUDE_VARIANCE"
+  string enforcement_action = 4; // ALLOW, CHALLENGE_CAPTCHA, SHADOW_BAN, TERMINATE_SHIFT
+}
+
+message RideCollusionRequest {
+  string rider_id = 1;
+  string driver_id = 2;
+  string payment_fingerprint = 3;
+  string promo_code_used = 4;
+  int32 past_co_occurrences_count = 5;
+}
+
+message RideCollusionResponse {
+  bool is_collusion_suspected = 1;
+  double collusion_risk_score = 2;
+  repeated string risk_indicators = 3; // e.g., "SHARED_PAYMENT_INSTRUMENT", "PROMO_HARVESTING_PATTERN", "REPEATED_DISPATCH_PAIRING"
+  bool should_block_payment_payout = 4;
+}
+
+message AccountRiskRequest {
+  string account_id = 1;
+  string role = 2; // RIDER, DRIVER, FLEET_OWNER
+  string phone_number = 3;
+  string email = 4;
+  string payment_card_bin = 5;
+  DeviceFingerprint device = 6;
+}
+
+message AccountRiskResponse {
+  string risk_tier = 1; // LOW, MEDIUM, HIGH, BLOCKED
+  double risk_score = 2; // 0.00 to 1.00
+  repeated string risk_factors = 3;
+  bool requires_3ds_verification = 4;
+  bool requires_kyc_escalation = 5;
+}
+
+message ReportIncidentRequest {
+  string reporter_id = 1;
+  string target_id = 2;
+  string incident_category = 3;
+  string description = 4;
+  string evidence_payload_json = 5;
+}
+
+message ReportIncidentResponse {
+  string case_id = 1;
+  bool is_logged = 2;
+}

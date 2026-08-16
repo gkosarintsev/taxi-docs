@@ -1,0 +1,55 @@
+@startuml Kubernetes_Deployment_Topology
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Production Kubernetes (EKS / GKE) Cluster Deployment Topology
+
+Deployment_Node(cloud, "Cloud Provider (AWS / GCP)", "Primary Region (us-east-1)") {
+    Deployment_Node(dmz, "DMZ / Ingress Edge Layer") {
+        Deployment_Node(nlb, "Network Load Balancer (NLB)", "AWS NLB") {
+            Container(nlb_instance, "Layer 4 Anycast NLB", "Terminates TLS 1.3, distributes TCP/gRPC/WSS traffic")
+        }
+        Deployment_Node(envoy_ingress, "Ingress Controller & Edge Gateway", "Envoy / Istio Ingress") {
+            Container(envoy_pods, "Envoy Gateway Pods", "Go / C++", "Rate limiting, JWT verification, gRPC-Web proxy, eBPF socket acceleration")
+        }
+    }
+
+    Deployment_Node(k8s_cluster, "Production Kubernetes Cluster", "EKS 1.30+ Multi-AZ (AZ-A, AZ-B, AZ-C)") {
+        Deployment_Node(ns_core, "Namespace: mobility-core (Istio Service Mesh)") {
+            Container(location_pods, "Location Ingestion Service", "Go (HPA 20..100 pods)", "Autoscales on CPU (>70%) & Network PPS")
+            Container(matching_pods, "Matching & Dispatch Service", "Go (HPA 10..50 pods)", "Autoscales on Kafka Lag & Match Batch Queue Depth")
+            Container(order_pods, "Order Lifecycle Service", "Go (HPA 10..40 pods)", "Autoscales on Request Latency & Pod CPU")
+            Container(billing_pods, "Billing Ledger Service", "Java Spring Boot (HPA 8..24 pods)", "Fixed memory allocation, strict thread pools")
+        }
+
+        Deployment_Node(ns_events, "Namespace: mobility-infra") {
+            Container(kafka_strimzi, "Apache Kafka Cluster", "Strimzi KRaft (3 Controllers + 6 Brokers)", "NVMe SSD backed persistent volumes (gp3)")
+            Container(redis_operator, "Redis Enterprise Cluster", "Redis 7.x (16 Master + 16 Replica Shards)", "In-memory spatial index & distributed locks")
+        }
+    }
+
+    Deployment_Node(managed_db, "Managed Cloud Data Layer", "Multi-AZ VPC Subnet") {
+        ContainerDb(aurora_core, "Core Aurora PostgreSQL", "AWS Aurora Multi-AZ", "1 Primary Writer + 4 Read Replicas with PgBouncer")
+        ContainerDb(aurora_billing, "Billing Aurora PostgreSQL", "ACID Dedicated Primary", "Synchronous Multi-AZ standby, Zero RPO")
+        ContainerDb(clickhouse_cluster, "ClickHouse OLAP Cluster", "Altinity Operator", "6 Shards (2 Replicas each) for GPS telemetry logs")
+    }
+}
+
+Rel(nlb_instance, envoy_pods, "Forwards Traffic (Proxy Protocol v2)", "TCP / TLS")
+Rel(envoy_pods, location_pods, "Routes GPS Streams", "gRPC / Protobuf")
+Rel(envoy_pods, matching_pods, "Routes Ride Requests", "gRPC / HTTP/2")
+Rel(envoy_pods, order_pods, "Routes Trip Actions", "gRPC / HTTP/2")
+Rel(envoy_pods, billing_pods, "Routes Payment Calls", "HTTPS REST")
+
+Rel(location_pods, redis_operator, "H3 Spatial Reads/Writes", "RESP")
+Rel(location_pods, kafka_strimzi, "Emits driver.telemetry", "Kafka TCP")
+
+Rel(matching_pods, redis_operator, "Driver Candidate Queries", "RESP")
+Rel(matching_pods, kafka_strimzi, "Consumes ride.requested", "Kafka TCP")
+
+Rel(order_pods, aurora_core, "CRUD Ride Entities", "PostgreSQL TCP")
+Rel(billing_pods, aurora_billing, "ACID Ledger Transactions", "PostgreSQL TCP")
+Rel(kafka_strimzi, clickhouse_cluster, "Kafka Engine Table CDC Pipeline", "Native ClickHouse Protocol")
+
+@enduml

@@ -1,0 +1,38 @@
+@startuml Data_Pipeline_Architecture
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Real-time Geospatial Data Streaming & ML Feature Pipeline
+
+Container(driver_app, "Driver & Rider Telemetry Ingestion", "Location Service", "Emits raw GPS points at 50k+ events/sec")
+
+System_Boundary(streaming_layer, "Streaming & Event Backbone") {
+    ContainerDb(kafka_raw, "Kafka Topic: driver.telemetry.raw", "Apache Kafka", "Raw un-filtered GPS streams")
+    Container(flink_engine, "Apache Flink Stream Processor", "Stateful Flink 1.19+", "1. Temporal windowing (10s tumbling & sliding)\n2. H3 hex spatial aggregation\n3. Driver dwell time & speed anomaly calculation\n4. Dynamic supply-demand ratio evaluation")
+    ContainerDb(kafka_surge, "Kafka Topic: analytics.surge.ratios", "Apache Kafka", "Aggregated supply/demand per H3 cell")
+    ContainerDb(kafka_fraud, "Kafka Topic: alerts.fraud.spoofing", "Apache Kafka", "Detected GPS mocking & teleportation alerts")
+}
+
+System_Boundary(storage_analytics, "Storage, OLAP & ML Feature Store") {
+    ContainerDb(feast_store, "Feast ML Feature Store", "Redis (Online) + S3 / Parquet (Offline)", "Provides real-time feature vectors (Driver acceptance rate, historical ETA error) for ML ranking")
+    ContainerDb(clickhouse_olap, "ClickHouse OLAP Telemetry Store", "ClickHouse MergeTree", "High-performance analytical storage for route replays, driver heatmaps, and spatial BI")
+    ContainerDb(s3_lake, "Data Lake / S3 Parquet Lakehouse", "AWS S3 / Apache Iceberg", "Cold storage for ML training pipelines (Surge prediction model, ETA neural network)")
+}
+
+Container(matching_ml, "Matching & Pricing Engines", "Go / Python ML Services", "Consumes real-time features for ETA & pricing")
+
+Rel(driver_app, kafka_raw, "Publishes raw telemetry", "Kafka Producer")
+Rel(kafka_raw, flink_engine, "Consumes event stream", "Flink Kafka Consumer")
+
+Rel(flink_engine, kafka_surge, "Publishes computed H3 supply/demand", "Kafka Producer")
+Rel(flink_engine, kafka_fraud, "Publishes suspicious telemetry flags", "Kafka Producer")
+
+Rel(flink_engine, feast_store, "Pushes low-latency online features (<5ms)", "RESP")
+Rel(flink_engine, clickhouse_olap, "High-throughput micro-batch insert", "ClickHouse Native")
+Rel(kafka_raw, s3_lake, "Kafka Connect S3 Sink (Parquet / Gzip)", "Hourly Batch")
+
+Rel(matching_ml, feast_store, "Reads real-time ML feature vectors", "gRPC / Redis")
+Rel(matching_ml, kafka_surge, "Subscribes to live surge updates", "Kafka Consumer")
+
+@enduml

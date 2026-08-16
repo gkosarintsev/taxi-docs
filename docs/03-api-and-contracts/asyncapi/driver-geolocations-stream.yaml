@@ -1,0 +1,77 @@
+asyncapi: '2.6.0'
+info:
+  title: Driver Geolocation Stream Specification
+  version: 1.0.0
+  description: High-throughput real-time Kafka event stream for driver GPS coordinates and deadband telemetry.
+
+servers:
+  production-kafka:
+    url: kafka-broker.internal.mobility-platform.io:9092
+    protocol: kafka
+    description: Internal Kafka broker cluster
+
+channels:
+  driver.telemetry.snapped:
+    description: Processed and road-snapped driver GPS coordinates partitioned by H3 Resolution 7 index.
+    publish:
+      summary: Driver telemetry broadcast from Location Service
+      operationId: publishDriverTelemetry
+      message:
+        $ref: '#/components/messages/DriverLocationUpdate'
+
+components:
+  messages:
+    DriverLocationUpdate:
+      name: DriverLocationUpdate
+      title: Driver Position Event
+      summary: Snapped position of an active driver partner
+      contentType: application/json
+      payload:
+        type: object
+        required:
+          - driver_id
+          - vehicle_id
+          - status
+          - latitude
+          - longitude
+          - bearing
+          - speed_kph
+          - h3_res7_index
+          - h3_res8_index
+          - timestamp
+        properties:
+          driver_id:
+            type: string
+            format: uuid
+          vehicle_id:
+            type: string
+          status:
+            type: string
+            enum: [ONLINE_SEARCHING, OFFER_RECEIVED, EN_ROUTE_PICKUP, ON_TRIP]
+          latitude:
+            type: number
+            format: double
+            example: 37.774929
+          longitude:
+            type: number
+            format: double
+            example: -122.419416
+          bearing:
+            type: number
+            description: Heading in degrees (0 - 360)
+            example: 184.5
+          speed_kph:
+            type: number
+            example: 42.1
+          accuracy_meters:
+            type: number
+            example: 3.5
+          h3_res7_index:
+            type: string
+            example: "871f1d488ffffff"
+          h3_res8_index:
+            type: string
+            example: "881f1d488ffffff"
+          timestamp:
+            type: string
+            format: date-time
