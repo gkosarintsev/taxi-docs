@@ -74,14 +74,15 @@ graph LR
   - [Dynamic Surge Pricing Formula & Elasticity Model](02-business-processes/algorithms/dynamic-surge-formula.md)
   - [ML Travel Time (ETA) Residual Routing Correction](02-business-processes/algorithms/eta-routing-ml-correction.md)
   - [Dead Reckoning Extended Kalman Filter & Map Snapping](02-business-processes/algorithms/dead-reckoning-kalman-filter.md)
-- **BPMN 2.0 Workflows** _(откройте в [bpmn.io Viewer](https://demo.bpmn.io) — File → Open → вставьте содержимое .bpmn файла)_:
-  - [Ride Execution Lifecycle](02-business-processes/bpmn/ride-execution-flow.bpmn) ([🔍 View in bpmn.io](https://demo.bpmn.io/new))
-  - [Driver Automated KYC & Vehicle Inspection](02-business-processes/bpmn/driver-kyc-verification.bpmn) ([🔍 View in bpmn.io](https://demo.bpmn.io/new))
-  - [Scheduled Rides Dispatch & Liveness SLA](02-business-processes/bpmn/scheduled-rides-dispatch.bpmn) ([🔍 View in bpmn.io](https://demo.bpmn.io/new))
-  - [Safety Incident Detection & Emergency SOS Escalation](02-business-processes/bpmn/safety-incident-escalation.bpmn) ([🔍 View in bpmn.io](https://demo.bpmn.io/new))
-  - [Carpool Shared Rides Dynamic Multi-Stop Matching](02-business-processes/bpmn/carpool-shared-rides.bpmn) ([🔍 View in bpmn.io](https://demo.bpmn.io/new))
-  - [B2B Corporate & Fleet Onboarding](02-business-processes/bpmn/b2b-partner-onboarding.bpmn) ([🔍 View in bpmn.io](https://demo.bpmn.io/new))
-  - [Dispute Resolution & Fare Adjustments](02-business-processes/bpmn/dispute-resolution.bpmn) ([🔍 View in bpmn.io](https://demo.bpmn.io/new))
+- **BPMN 2.0 Workflows:**
+  - [Ride Execution Lifecycle](02-business-processes/bpmn/ride-execution-flow.svg) ([.bpmn](02-business-processes/bpmn/ride-execution-flow.bpmn))
+  - [Driver Automated KYC & Vehicle Inspection](02-business-processes/bpmn/driver-kyc-verification.svg) ([.bpmn](02-business-processes/bpmn/driver-kyc-verification.bpmn))
+  - [Scheduled Rides Dispatch & Liveness SLA](02-business-processes/bpmn/scheduled-rides-dispatch.svg) ([.bpmn](02-business-processes/bpmn/scheduled-rides-dispatch.bpmn))
+  - [Safety Incident Detection & Emergency SOS Escalation](02-business-processes/bpmn/safety-incident-escalation.svg) ([.bpmn](02-business-processes/bpmn/safety-incident-escalation.bpmn))
+  - [Carpool Shared Rides Dynamic Multi-Stop Matching](02-business-processes/bpmn/carpool-shared-rides.svg) ([.bpmn](02-business-processes/bpmn/carpool-shared-rides.bpmn))
+  - [B2B Corporate & Fleet Onboarding](02-business-processes/bpmn/b2b-partner-onboarding.svg) ([.bpmn](02-business-processes/bpmn/b2b-partner-onboarding.bpmn))
+  - [Dispute Resolution & Fare Adjustments](02-business-processes/bpmn/dispute-resolution.svg) ([.bpmn](02-business-processes/bpmn/dispute-resolution.bpmn))
+
 
 - **State Machines (FSM):**
   - [Order & Trip Lifecycle](02-business-processes/state-machines/order-lifecycle.md)

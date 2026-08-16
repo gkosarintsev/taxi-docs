@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'docs/**/*.puml'
+      - 'docs/**/*.bpmn'
       - '.github/workflows/generate-diagrams.yml'
     branches:
       - main
@@ -30,6 +31,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Install Graphviz & Download PlantUML
         run: |
           sudo apt-get update
@@ -40,12 +46,20 @@ jobs:
         run: |
           echo "Rendering all PlantUML architecture, sequence, ER, and screen flow diagrams..."
           java -Djava.awt.headless=true -jar plantuml.jar -tsvg "docs/**.puml"
-          echo "PlantUML rendering completed successfully."
+          echo "PlantUML rendering completed."
+
+      - name: Install Playwright & render BPMN to SVG
+        run: |
+          echo "Installing Playwright..."
+          npm install playwright
+          npx playwright install --with-deps chromium
+          echo "Rendering BPMN diagrams..."
+          node scripts/render-bpmn.js
 
       - name: Commit and Push Generated SVG Diagrams
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "docs(diagrams): auto-generate SVG diagrams from PUML [skip ci]"
+          commit_message: "docs(diagrams): auto-generate SVG diagrams from PUML & BPMN [skip ci]"
           file_pattern: "docs/**/*.svg"
           commit_user_name: "github-actions[bot]"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
