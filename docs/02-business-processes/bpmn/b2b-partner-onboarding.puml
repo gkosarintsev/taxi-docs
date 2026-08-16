@@ -1,0 +1,45 @@
+@startuml b2b-partner-onboarding
+skinparam monochrome false
+skinparam defaultFontName "Inter, Helvetica, sans-serif"
+skinparam defaultFontSize 12
+skinparam activity {
+  BackgroundColor #FFFFFF
+  BorderColor #2C3E50
+  ArrowColor #2980B9
+}
+
+|#E8F4F8| B2B Corporate / Fleet Admin |
+start
+:Submit Corporate Registration & Tax ID;
+:Provide Company Details & Billing Entity Info;
+
+|#FDF2E9| B2B Onboarding Service |
+:Validate Tax ID & Company Registration in State DB;
+:Run Corporate Credit & AML Screening;
+
+if (Credit Assessment Result) then (Credit Approved)
+  |#E8F8F5| Corporate Billing & Provisioning |
+  :Create Corporate Double-Entry Ledger Account;
+  :Generate API Keys & Webhook Secret Tokens;
+  :Assign Credit Line / Post-Paid Billing Terms;
+  :Provision Admin Portal Dashboard Access;
+  |#E8F4F8| B2B Corporate / Fleet Admin |
+  :Bulk Import Employee Roster & Set Policy Rules;
+  note right: Ride budget caps, allowed hours, geofenced dropoffs
+  :Activate Corporate Booking Program;
+  stop
+else (Credit Review Required)
+  |#FEF9E7| Manual Risk Review |
+  :Risk Officer Reviews Financial Statements;
+  if (Risk Officer Decision) then (Approve Pre-Paid Only)
+    |#E8F8F5| Corporate Billing & Provisioning |
+    :Require Upfront Prepaid Balance Deposit;
+    :Provision Corporate Portal with Prepaid Mode;
+    stop
+  else (Reject)
+    |#FADBD8| Application Rejected |
+    :Notify Applicant with Justification;
+    stop
+  endif
+endif
+@enduml

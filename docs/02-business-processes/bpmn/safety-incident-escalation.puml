@@ -1,0 +1,44 @@
+@startuml safety-incident-escalation
+skinparam monochrome false
+skinparam defaultFontName "Inter, Helvetica, sans-serif"
+skinparam defaultFontSize 12
+skinparam activity {
+  BackgroundColor #FFFFFF
+  BorderColor #2C3E50
+  ArrowColor #2980B9
+}
+
+|#E8F4F8| Vehicle / Rider Telemetry |
+start
+:Trigger Safety Signal;
+note right: High G-Force Crash Sensor, Route Deviation > 2km, or User SOS Button
+
+|#FDF2E9| Real-Time Telemetry & Safety Engine |
+:Assess Signal Severity & Threat Level;
+if (Signal Type & Confidence) then (SOS Button Pressed or Crash > 8G)
+  |#FADBD8| Critical Emergency Handler (L1) |
+  :Send Push Check: "Are you OK?" (30s Countdown);
+  if (User Confirms OK?) then (False Alarm)
+    :Log Telemetry Event as Resolved;
+    stop
+  else (No Response / SOS Confirmed)
+    :Instantly Alert 24/7 Safety Operations Center;
+    :Trigger Automated VoIP Call to Rider & Driver;
+    :Share Real-Time Live GPS Trajectory with Police / PSAP;
+    :Notify Registered Emergency Contacts via SMS with Live Link;
+    :Preserve High-Frequency Sensor Logs & Cabin Audio for Forensics;
+    stop
+  endif
+else (Prolonged Stop / Minor Route Deviation)
+  |#FEF9E7| Proactive Ride Check Engine |
+  :Trigger App Safety Check Notification;
+  if (Rider Responds "Everything is Fine"?) then (Yes)
+    :Resume Standard Trip Monitoring;
+    stop
+  else (No Response within 2 Minutes)
+    :Escalate to Human Safety Agent Queue;
+    :Agent Places Direct In-App Call to Vehicle;
+    stop
+  endif
+endif
+@enduml

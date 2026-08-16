@@ -1,0 +1,39 @@
+@startuml carpool-shared-rides
+skinparam monochrome false
+skinparam defaultFontName "Inter, Helvetica, sans-serif"
+skinparam defaultFontSize 12
+skinparam activity {
+  BackgroundColor #FFFFFF
+  BorderColor #2C3E50
+  ArrowColor #2980B9
+}
+
+|#E8F4F8| Rider 1 (Initial Request) |
+start
+:Request Carpool Shared Ride;
+:Lock Discounted Base Fare;
+
+|#FDF2E9| Carpool Matching & Routing Engine |
+:Assign Initial Driver & Begin Active Route;
+
+|#FEF9E7| Rider 2 (Incoming Request) |
+:Request Carpool Along Same Spatial Corridor;
+
+|#FDF2E9| Carpool Matching & Routing Engine |
+:Calculate Marginal Detour (Δt <= 7 mins, Δd <= 2.5 km);
+if (Corridor Detour Acceptable?) then (Within Detour Threshold)
+  :Recalculate Optimal Multi-Stop Waypoint Sequence;
+  note right: e.g. Pickup 1 -> Pickup 2 -> Dropoff 1 -> Dropoff 2
+  :Update Driver Turn-by-Turn Navigation Queue;
+  |#EAECEE| Driver Partner |
+  :Receive Dynamic Route Insertion Notification;
+  :Execute Sequential Pickups and Dropoffs;
+  |#E8F8F5| Split Ledger & Billing |
+  :Apply Dynamic Shared Fare Discount to Both Riders;
+  :Post Split Double-Entry Ledger Transactions;
+  stop
+else (Detour Exceeds Threshold)
+  :Dispatch Rider 2 to Independent Driver;
+  stop
+endif
+@enduml

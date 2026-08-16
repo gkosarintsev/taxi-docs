@@ -1,0 +1,55 @@
+@startuml driver-kyc-verification
+skinparam monochrome false
+skinparam defaultFontName "Inter, Helvetica, sans-serif"
+skinparam defaultFontSize 12
+skinparam activity {
+  BackgroundColor #FFFFFF
+  BorderColor #2C3E50
+  ArrowColor #2980B9
+}
+
+|#E8F4F8| Driver Applicant |
+start
+:Submit KYC Application & Upload Documents;
+note right: Driver License, Passport, Vehicle Registration, Insurance
+
+|#FDF2E9| Document Ingestion & Storage |
+:Encrypt & Store High-Res Photos in S3;
+:Trigger Async KYC Verification Pipeline;
+
+|#FEF9E7| Automated ML & OCR Verification |
+:Run OCR Text Extraction (License Number, DOB, Expiry);
+:Perform Facial Biometric Match (Selfie vs ID Photo);
+:Run Vehicle Image AI Check (Damage / Plate Recognition);
+
+if (Automated ML Confidence Score >= 0.95?) then (Pass)
+  |#E8F8F5| Background Check & Registry Integration |
+  :Query Government Driving Record Registry;
+  :Query Criminal Background Check Provider;
+  if (Background Check Clear?) then (Approved)
+    :Activate Driver Account & Enable Shifts;
+    |#E8F4F8| Driver Applicant |
+    :Send SMS & Push: Account Approved!;
+    stop
+  else (Flagged / Record Found)
+    :Reject Application (Permanent Flag);
+    |#E8F4F8| Driver Applicant |
+    :Send Push: Background Check Failed;
+    stop
+  endif
+else (Low Confidence / Unclear Photo)
+  |#FADBD8| Manual Compliance Review (L2) |
+  :Route Application to Compliance Queue;
+  :Operator Manually Reviews Documents;
+  if (Operator Decision) then (Approve)
+    |#E8F8F5| Background Check & Registry Integration |
+    :Query Government Driving Record Registry;
+    :Activate Driver Account & Enable Shifts;
+    stop
+  else (Reject / Request Re-upload)
+    |#E8F4F8| Driver Applicant |
+    :Request Document Re-Upload with Rejection Reason;
+    stop
+  endif
+endif
+@enduml

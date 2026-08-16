@@ -1,0 +1,42 @@
+@startuml dispute-resolution
+skinparam monochrome false
+skinparam defaultFontName "Inter, Helvetica, sans-serif"
+skinparam defaultFontSize 12
+skinparam activity {
+  BackgroundColor #FFFFFF
+  BorderColor #2C3E50
+  ArrowColor #2980B9
+}
+
+|#E8F4F8| Passenger / Driver |
+start
+:Submit Ride Dispute Ticket;
+note right: e.g. Inefficient Route, Cleaning Fee, Toll Dispute, Cancellation Fee
+
+|#FDF2E9| Dispute Intake Engine |
+:Aggregate Trip Context (Actual vs Quoted Route, GPS Telemetry);
+:Query Historical Dispute Rate & Fraud Score of User;
+
+|#FEF9E7| Automated Policy Rules Engine |
+if (Dispute Type & Amount) then (Low Value < $15 & First Time Claim)
+  |#E8F8F5| Instant Resolution Engine |
+  :Issue Instant Wallet Credit / Partial Refund;
+  :Post Double-Entry Ledger Adjustment (Dispute Expense);
+  :Send Apology Push Notification to User;
+  stop
+else (High Value / Repeated Claim / Damage Fee)
+  |#FADBD8| Human Support Agent (L2) |
+  :Review GPS Telemetry, Toll Receipts & Submitted Photos;
+  if (Agent Assessment) then (Claim Valid)
+    |#E8F8F5| Instant Resolution Engine |
+    :Process Fare Adjustment / Refund;
+    :Credit or Debit Respective Driver / Rider Wallet;
+    :Update Ledger with Resolution Journal Entry;
+    stop
+  else (Claim Rejected)
+    :Reject Dispute with Documented Explanation;
+    :Notify User of Final Resolution Decision;
+    stop
+  endif
+endif
+@enduml

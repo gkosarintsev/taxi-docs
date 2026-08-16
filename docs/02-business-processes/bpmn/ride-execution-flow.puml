@@ -1,0 +1,45 @@
+@startuml ride-execution-flow
+skinparam monochrome false
+skinparam defaultFontName "Inter, Helvetica, sans-serif"
+skinparam defaultFontSize 12
+skinparam activity {
+  BackgroundColor #FFFFFF
+  BorderColor #2C3E50
+  ArrowColor #2980B9
+}
+
+|#E8F4F8| Passenger (Rider) |
+start
+:Request Ride & Lock Fare Quote;
+
+|#FDF2E9| Matching & Dispatch Engine |
+:Pre-Authorize Card Hold (Payment Gateway);
+:Query H3 Nearby Driver Pool;
+
+repeat
+  :Dispatch 15s Direct Offer to Candidate Driver;
+  |#EAECEE| Driver Partner |
+  if (Driver Response) then (Accepts Offer)
+    |#E8F8F5| Trip Management & Tracking |
+    :Assign Driver & Send Push Notification;
+    :Track Driver En-Route to Pickup Point;
+    :Driver Arrived at Pickup (Wait Timer Starts);
+    :Start Trip & Begin GPS Telemetry Streaming;
+    :Execute Trip in Transit (Kalman & Map Snapping);
+    :Complete Trip at Destination;
+    
+    |#FEF9E7| Billing & Ledger |
+    :Capture Pre-Authorized Hold Amount;
+    :Post Balanced Double-Entry Journal;
+    :Prompt Passenger Rating & Optional Tip;
+    stop
+  else (Declined / Timeout 15s)
+    |#FDF2E9| Matching & Dispatch Engine |
+    :Expand H3 Search Radius;
+  endif
+repeat while (Candidates Available & Retries < 3) is (yes)
+->no;
+:Notify Passenger: No Drivers Available;
+:Release Pre-Auth Payment Hold;
+stop
+@enduml
