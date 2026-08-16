@@ -4,46 +4,66 @@ This contract defines the client-side interaction, geocoding autocomplete, multi
 
 ---
 
-## 1. UI Layout & Component Hierarchy
+## 1. Visual UI Layout & Multi-Layer Hierarchy
+
+> [!NOTE]
+> **Vector UI Wireframe:** View the standalone vector screen mockup: [passenger-route-selection.svg](../wireframes/passenger-route-selection.svg) ([.puml source](../wireframes/passenger-route-selection.puml)).
 
 ```mermaid
-graph TD
-    subgraph RouteSelectionView [Passenger Route & Tariff Selection Viewport]
-        SearchBar["Top Address Input Bar (Origin [A] · Add Stop [+] · Destination [B])"]
-        MapViewport["Interactive Route Polyline Map (Bounds: Origin & Destination + Padding)"]
-        TariffCarousel["Tariff Selection Carousel (Economy · Comfort · Business · XL · Carpool)"]
-        SurgeBadge["Surge Pricing Pill ('1.4x High Demand · +$4.20')"]
-        RideOptionsSheet["Ride Options Pill (Child Seat · Pet Friendly · Quiet Ride)"]
-        PaymentSelector["Payment Method Selector (Card **** 4242 · Apple Pay · B2B Corporate)"]
-        PromoInput["Promo Code Button ('SUMMER2026 Applied: -$5.00')"]
-        PrimaryCTA["'Book Economy ($18.50)' Primary Action Button (Quote Locked: 118s)"]
+flowchart TB
+    subgraph PhoneFrame ["📱 Smartphone Viewport · Passenger App (SCR-RIDER-002)"]
+        direction TB
+
+        subgraph TopBar ["Layer 1: Top Address & Route Bar (Floating Island)"]
+            A["📍 [A] Pickup: 555 Market St, San Francisco"]
+            B["🏁 [B] Dropoff: SFO Airport Terminal 2"]
+            AddStop["➕ Add Intermediate Stop (+1)"]
+        end
+
+        subgraph MapCanvas ["Layer 0: Full-Screen 3D Vector Map Viewport"]
+            Route["🗺️ Route Polyline: 24 min · 11.4 km (No traffic delays)"]
+        end
+
+        subgraph BottomSheet ["Layer 2: Sliding Bottom Sheet (Swipe Up / Down)"]
+            direction TB
+            subgraph Tariffs ["Horizontal Tariff Selection Carousel (Swipe ◄ ►)"]
+                T1["🚗 <b>Economy</b><br/><b>$18.50</b><br/>⚡ 1.3x Surge<br/>3 min ETA"]
+                T2["✨ <b>Comfort</b><br/><b>$24.00</b><br/>Extra Legroom<br/>5 min ETA"]
+                T3["💼 <b>Business</b><br/><b>$38.00</b><br/>Executive Sedan<br/>8 min ETA"]
+                T4["🚐 <b>XL Group</b><br/><b>$46.50</b><br/>6-Seater SUV<br/>6 min ETA"]
+            end
+
+            subgraph PayRow ["Payment Method & Discounts"]
+                Pay["💳 Visa •••• 4242 (Change)"]
+                Promo["🏷️ Promo: SUMMER2026 (-$5.00)"]
+                Options["⚙️ Ride Options (Child Seat)"]
+            end
+
+            CTA["🔵 <b>CONFIRM & BOOK ECONOMY · $18.50</b> (Quote Locked: 118s)"]
+        end
     end
+
+    style PhoneFrame fill:#F8FAFC,stroke:#334155,stroke-width:3px
+    style TopBar fill:#FFFFFF,stroke:#94A3B8,stroke-width:2px
+    style MapCanvas fill:#E0F2FE,stroke:#0284C7,stroke-width:2px
+    style BottomSheet fill:#FFFFFF,stroke:#64748B,stroke-width:2px
+    style T1 fill:#EFF6FF,stroke:#2563EB,stroke-width:2px
+    style T2 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1px
+    style T3 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1px
+    style T4 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1px
+    style CTA fill:#2563EB,stroke:#1D4ED8,color:#FFFFFF,stroke-width:2px
 ```
 
-### 1.1 Address Input & Geocoding Bar
+### 1.1 Bottom Sheet Dynamics & Expansion Heights
 
-- **Origin Pin (A):** Pre-filled with client GPS geocoded location; editable by tap or map pin drag.
-- **Add Stop Button (+):** Supports up to 2 intermediate waypoints ($A \rightarrow W_1 \rightarrow W_2 \rightarrow B$).
-- **Destination Input (B):** Focus-triggered full-screen overlay with:
-  - Saved Places (Home, Work, Gym).
-  - Recent Search History with timestamps.
-  - Debounced autocomplete search ($300\text{ ms}$) via Geocoding API.
+The bottom sheet utilizes a 3-tier gesture-driven spring animation:
 
-### 1.2 Interactive Route Canvas
+| Height Tier                 | Pixel Height            | Visible Elements                                                                                          | User Trigger                                |
+| --------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| **Collapsed**               | $160\text{ dp}$         | Active tariff name, price ($18.50), Surge pill, and Primary CTA button.                                   | Default map exploration mode.               |
+| **Half-Expanded (Default)** | $380\text{ dp}$         | Full tariff carousel, payment selector, promo code chip, and CTA button.                                  | Upon route calculation response.            |
+| **Fully Expanded**          | $100\%\text{ Viewport}$ | Full address input overlay, saved places (Home/Work), and advanced ride options (Child seat, quiet ride). | Tapping origin or destination input fields. |
 
-- Renders primary route polyline in Platform Blue (`#2563EB`) with estimated travel duration pill (`24 min · 11.4 km`).
-- Renders alternative grey routes with differential badges (`+4 min`, `Toll Free`).
-
-### 1.3 Tariff Carousel & Surge Multiplier HUD
-
-- Horizontal snap-carousel displaying available platform vehicle categories:
-  - **Economy (Standard 4-seater):** Base tariff, highest availability.
-  - **Comfort (Spacious newer sedans):** Top-rated drivers, extra legroom.
-  - **Business (Executive Black):** Luxury vehicles, bottled water, professional chauffeur.
-  - **XL (6-seater SUV/Minivan):** Large groups and extra luggage.
-  - **Carpool (Shared Rides):** Discounted multi-passenger corridor sharing.
-- **Dynamic Surge Indicator:** Displays flame icon with real-time surge multiplier badge (`⚡ 1.4x High Demand`) with tooltip explaining weather/event supply-demand imbalance.
-- **Quote Lock Timer:** Upfront fare price is cryptographically locked for $120\text{ seconds}$ with a countdown indicator.
 
 ---
 

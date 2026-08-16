@@ -1,0 +1,21 @@
+@startsalt
+skinparam defaultFontName "Inter, Helvetica, sans-serif"
+skinparam defaultFontSize 12
+{+
+  <b>Driver Terminal · Pickup Spot & Trip Start (SCR-DRV-003)</b> | [📞 Call Rider] | [💬 Chat]
+  --
+  {
+    <b>Status:</b> | <color:green><b>✓ YOU ARE AT PICKUP SPOT: 555 Market St</b></color>
+    <b>Passenger:</b> | Sarah K. ★ 4.92 (142 rides) | [ 📍 Nav to Pin ]
+  }
+  == [ 🗺️ <b>Map Viewport: Precise Passenger Pin & Geofence (Radius 30m)</b> ] ==
+  {
+    ⏱️ <b>Wait Timer HUD:</b> | <b>02:15</b> Free Wait (Paid wait starts after 3:00)
+    🔐 <b>Enter Passenger OTP:</b> | [ 4 ] [ 9 ] [ 1 ] [ 2 ] | [ <b>✓ Verify</b> ]
+  }
+  --
+  [ >>>>>>>>>>>>>>>>> <b>SLIDE TO START TRIP (SWIPE RIGHT)</b> >>>>>>>>>>>>>>>>> ]
+  --
+  [ Cancel Ride (Passenger No-Show) - Active after 5:00 min ]
+}
+@enduml

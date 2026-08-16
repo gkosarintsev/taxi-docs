@@ -1,0 +1,23 @@
+@startsalt
+skinparam defaultFontName "Inter, Helvetica, sans-serif"
+skinparam defaultFontSize 12
+{+
+  <b>Driver Terminal · Home Dashboard (SCR-DRV-001)</b> | [ ⚙️ Preferences ]
+  --
+  {
+    <b>Shift Status:</b> | [ <color:green><b>● ONLINE (ACCEPTING RIDES)</b></color> ]
+    <b>Destination Filter:</b> | [ 🏠 Set Destination (Towards Home) ]
+  }
+  == [ 🗺️ <b>Map Viewport: Uber H3 Hexagonal Surge Heatmap (Res 7)</b> ] ==
+  {
+    <b>Today's Summary:</b> | <b>$248.50</b> Earnings | 12 Trips | 6.2 hrs online
+    <b>Active Quest:</b>    | [===---] Complete 3 more rides for +$45 bonus
+  }
+  --
+  {
+    <b>Driver Rating:</b> ★ 4.96 | <b>Acceptance:</b> 94% | <b>Cancellation:</b> 1.2%
+  }
+  --
+  [                           <b>GO OFFLINE (END SHIFT)</b>                           ]
+}
+@enduml

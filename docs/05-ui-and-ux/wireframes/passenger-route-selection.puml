@@ -1,0 +1,27 @@
+@startsalt
+skinparam defaultFontName "Inter, Helvetica, sans-serif"
+skinparam defaultFontSize 12
+{+
+  <b>Passenger App · Route & Tariff Selection (SCR-RIDER-002)</b> | [X]
+  --
+  {
+    <b>[A] Pickup:</b>    | "555 Market St, San Francisco, CA"
+    <b>[B] Dropoff:</b>   | "SFO Airport Terminal 2, San Francisco"
+    [+] Add Stop       | [ ⚙️ Ride Options (Child Seat, Pet) ]
+  }
+  == [ 🗺️ <b>Interactive 3D Map Viewport: Route Polyline (24 min · 11.4 km)</b> ] ==
+  {
+    <b>Available Tariffs (Swipe ◄ ►):</b>
+    (X) <b>Economy</b>  | <b>$18.50</b> | ⚡ 1.3x High Demand (+ $4.20) | 3 min ETA
+    ( ) <b>Comfort</b>  | <b>$24.00</b> | Extra Legroom & Top Drivers   | 5 min ETA
+    ( ) <b>Business</b> | <b>$38.00</b> | Executive Black Sedan Chauffeur | 8 min ETA
+    ( ) <b>XL Group</b> | <b>$46.50</b> | 6 Seats SUV & Extra Luggage   | 6 min ETA
+  }
+  --
+  {
+    <b>Payment:</b> 💳 Visa ···· 4242 | [🏷️ Apply Promo: SUMMER2026 (-$5.00)]
+  }
+  --
+  [                  <b>CONFIRM & BOOK ECONOMY ($18.50)</b>                  ]
+}
+@enduml

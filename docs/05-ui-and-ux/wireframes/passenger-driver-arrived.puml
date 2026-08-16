@@ -1,0 +1,23 @@
+@startsalt
+skinparam defaultFontName "Inter, Helvetica, sans-serif"
+skinparam defaultFontSize 12
+{+
+  <b>Passenger App · Driver Arrived (SCR-RIDER-006)</b> | [🛡️ Safety SOS]
+  --
+  {
+    <b>Status:</b> | <color:green><b>✓ DRIVER HAS ARRIVED AT PICKUP SPOT</b></color>
+  }
+  == [ 🗺️ <b>Map Viewport: Dotted Walking Guide to Vehicle (45m)</b> ] ==
+  {
+    <b>Vehicle:</b> | [ <b>7XYZ912</b> ] Silver Toyota Camry Hybrid
+    <b>Driver:</b>  | Alex M. ★ 4.94 (2,840 trips) | [ 📞 Call ] | [ 💬 Chat ]
+  }
+  --
+  {
+    ⏱️ <b>Free Waiting Window:</b> | <b>02:15</b> remaining (then $0.45/min)
+    🔐 <b>Your Security OTP Code:</b> | [ <size:16><b>4 9 1 2</b></size> ]
+  }
+  --
+  [                           Cancel Ride (Fee may apply)                           ]
+}
+@enduml

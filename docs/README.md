@@ -141,6 +141,12 @@ graph LR
   - [Driver App Shift & Offer Graph](05-ui-and-ux/screen-flows/Driver_App_Screen_Flow.svg) ([.puml](05-ui-and-ux/screen-flows/driver-app-flow.puml))
   - [Driver KYC & Vehicle Photo Inspection Flow](05-ui-and-ux/screen-flows/Driver_KYC_Upload_Screen_Flow.svg) ([.puml](05-ui-and-ux/screen-flows/driver-kyc-upload-flow.puml))
   - [B2B Dispatcher Web Wireframes](05-ui-and-ux/screen-flows/B2B_Dispatch_Wireframe.svg) ([.puml](05-ui-and-ux/screen-flows/b2b-dispatch-wireframes.puml))
+  - _Vector UI Screen Mockups (PlantUML Salt):_
+    - [Passenger Route & Tariff Selection Wireframe](05-ui-and-ux/wireframes/passenger-route-selection.svg) ([.puml](05-ui-and-ux/wireframes/passenger-route-selection.puml))
+    - [Passenger Driver Arrived Wireframe](05-ui-and-ux/wireframes/passenger-driver-arrived.svg) ([.puml](05-ui-and-ux/wireframes/passenger-driver-arrived.puml))
+    - [Driver Home Dashboard Wireframe](05-ui-and-ux/wireframes/driver-home-dashboard.svg) ([.puml](05-ui-and-ux/wireframes/driver-home-dashboard.puml))
+    - [Driver Pickup & Trip Start Wireframe](05-ui-and-ux/wireframes/driver-pickup-and-start.svg) ([.puml](05-ui-and-ux/wireframes/driver-pickup-and-start.puml))
+
 - **Screen Contracts (Mobile & Operations Specifications):**
   - _Passenger App:_
     - [Passenger Route & Tariff Selection (`SCR-RIDER-002`)](05-ui-and-ux/screen-contracts/passenger-route-and-tariff-selection.md)

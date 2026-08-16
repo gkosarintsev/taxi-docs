@@ -4,38 +4,61 @@ This specification defines the driver terminal behavior upon arriving at the rid
 
 ---
 
-## 1. UI Components & Visual Layout
+## 1. Visual UI Layout & Component Hierarchy
+
+> [!NOTE]
+> **Vector UI Wireframe:** View the standalone vector screen mockup: [driver-pickup-and-start.svg](../wireframes/driver-pickup-and-start.svg) ([.puml source](../wireframes/driver-pickup-and-start.puml)).
 
 ```mermaid
-graph TD
-    subgraph DriverPickupViewport [Driver Pickup HUD Viewport]
-        ArrivedStatus["Arrival Confirmation ('Arrived at 555 Market St')"]
-        WaitTimerPanel["Wait Timer HUD ('Free Waiting: 1:45' / 'Paid Waiting: $1.35 accrued')"]
-        PassengerSnippet["Rider Card (Passenger Name 'Sarah K.' · ★ 4.9 · Masked Call / Chat)"]
-        OTPVerificationKeypad["4-Digit Security OTP Keypad Input Box ('_ _ _ _')"]
-        SlideStartWidget["'SLIDE TO START TRIP' Swipe Widget (Full-width Gesture Slider)"]
-        NoShowAction["'Passenger No-Show' Escalation Button (Active after 5:00 min wait)"]
-        SOSFloatingButton["Emergency SOS Button (Red Pill #EF4444)"]
+flowchart TB
+    subgraph DriverTerminal ["📱 Driver Mobile Terminal Viewport (SCR-DRV-003)"]
+        direction TB
+
+        subgraph TopStatus ["Layer 1: Top Arrival Status HUD"]
+            StatusText["🟢 <b>✓ YOU ARE AT PICKUP SPOT: 555 Market St</b>"]
+            NavPinBtn["📍 Navigate to Exact Pin (Waze / Google Maps / Native)"]
+        end
+
+        subgraph MapCanvas ["Layer 0: High-Precision Pickup Spot Map Canvas"]
+            Geofence["🗺️ Passenger Pin (Accuracy: ±3m) · Geofence Circle (Radius: 30m)"]
+        end
+
+        subgraph BottomHUD ["Layer 2: Bottom Pickup Control Sheet"]
+            direction TB
+            subgraph RiderCard ["Passenger Information & Communication"]
+                RiderInfo["👤 <b>Sarah K.</b> (★ 4.92 · 142 rides)"]
+                Comms["📞 Masked VoIP Call · 💬 In-App Chat"]
+            end
+
+            subgraph TimerBox ["Dual-Stage Wait Timer HUD"]
+                TimerBadge["⏱️ <b>Free Waiting: 02:15</b> (Paid wait starts after 3:00 at $0.45/min)"]
+            end
+
+            subgraph OTPBox ["4-Digit Security OTP Keypad Input"]
+                OTPInput["🔐 Enter Passenger Code: [ 4 ] [ 9 ] [ 1 ] [ 2 ] · [✓ Verify]"]
+            end
+
+            subgraph ActionGestures ["Trip Execution Actions"]
+                SlideWidget["🟩 <b>SLIDE TO START TRIP >>>>>>>>></b> (Swipe Right with Haptic Pulse)"]
+                NoShowBtn["⚠️ Passenger No-Show (Active after 5:00 min wait · $6.00 Fee)"]
+            end
+        end
     end
+
+    style DriverTerminal fill:#F8FAFC,stroke:#1E293B,stroke-width:3px
+    style TopStatus fill:#ECFDF5,stroke:#059669,stroke-width:2px
+    style MapCanvas fill:#E0F2FE,stroke:#0284C7,stroke-width:2px
+    style BottomHUD fill:#FFFFFF,stroke:#475569,stroke-width:2px
+    style RiderCard fill:#F1F5F9,stroke:#94A3B8,stroke-width:1px
+    style TimerBox fill:#FEF3C7,stroke:#D97706,stroke-width:1px
+    style OTPBox fill:#EFF6FF,stroke:#3B82F6,stroke-width:1px
+    style SlideWidget fill:#10B981,stroke:#047857,color:#FFFFFF,stroke-width:2px
+    style NoShowBtn fill:#FEE2E2,stroke:#EF4444,color:#991B1B,stroke-width:1px
 ```
 
-### 1.1 Arrival Triggering & Geofence Sync
+### 1.1 Touch & Gesture Safety Invariants
 
-- **Automatic Geofence Trigger:** When driver's GPS location is within $\le 30\text{ meters}$ of the pickup coordinate for $\ge 5\text{ seconds}$, the system automatically sends `DRIVER_ARRIVED` and initiates the waiting timer.
-- **Manual Override Button:** If GPS is degraded (e.g. underground parking / urban canyon), driver can tap `I Have Arrived` manually.
-
-### 1.2 Dual-Stage Waiting Timer
-
-- **Free Waiting Stage (0:00 to 3:00):** Displayed in green/slate. No additional fees charged to rider.
-- **Paid Waiting Stage (> 3:00):** Counter turns Amber and dynamically counts accrued waiting revenue for the driver ($+\$0.45/\text{min}$).
-- **No-Show Threshold (5:00):** After $5\text{ minutes}$ of verified on-site waiting and at least 1 attempted phone call, the `Cancel (Rider No-Show)` button activates, entitling driver to the guaranteed cancellation fee payout ($\$6.00$).
-
-### 1.3 4-Digit Rider OTP Verification
-
-- Driver asks passenger for the 4-digit OTP code shown on the rider's screen.
-- On terminal keypad entry:
-  - If valid: Haptic double-tap pulse + unlocking the `SLIDE TO START TRIP` gesture.
-  - If invalid: Error shake animation + retry counter (3 attempts before temporary lockout).
+- **Why a Slider instead of a Button?** While operating a motor vehicle, sudden road vibrations or bumps can cause accidental screen taps. Using a linear `Slide-to-Confirm` swipe gesture requiring $250\text{ pixels}$ of continuous horizontal finger travel prevents false trip starts or unintended cancellations.
 
 ---
 
