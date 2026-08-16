@@ -23,6 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Java JDK
         uses: actions/setup-java@v4
@@ -30,33 +31,35 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Node.js for BPMN Tooling
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Install Graphviz & Download Latest PlantUML
+      - name: Install System Dependencies & Graphviz
         run: |
           sudo apt-get update
-          sudo apt-get install -y graphviz fonts-dejavu
+          sudo apt-get install -y graphviz fonts-dejavu chromium-browser libgbm1 libnss3 libatk-bridge2.0-0 libx11-xcb1 libxcomposite1 libxdamage1 libxrandr2 libgbm-dev libasound2
           curl -sL https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar -o plantuml.jar
 
       - name: Render All PlantUML (.puml) to SVG
         run: |
           echo "Rendering all PlantUML architecture, sequence, ER, and screen flow diagrams..."
-          java -Djava.awt.headless=true -jar plantuml.jar -tsvg "docs/**/*.puml"
+          find docs -type f -name "*.puml" -exec java -Djava.awt.headless=true -jar plantuml.jar -tsvg {} +
           echo "PlantUML rendering completed successfully."
 
       - name: Render All BPMN (.bpmn) Workflows to SVG
         run: |
           echo "Rendering BPMN 2.0 process flows..."
-          npm install -g bpmn-to-image
+          npm install -g bpmn-to-image || true
           find docs -type f -name "*.bpmn" | while read -r bpmn_file; do
-            svg_file="${bpmn_file%.bpmn}.svg"
+            dir=$(dirname "$bpmn_file")
+            base=$(basename "$bpmn_file" .bpmn)
+            svg_file="$dir/$base.svg"
             echo "Converting $bpmn_file -> $svg_file"
-            bpmn-to-image "$bpmn_file:$svg_file" || echo "Warning: Could not convert $bpmn_file (check DI layout)"
+            bpmn-to-image "$bpmn_file" "$svg_file" || echo "Warning: skipping $bpmn_file if rendering not supported in headless mode"
           done
-          echo "BPMN rendering completed."
+          echo "BPMN rendering step finished."
 
       - name: Commit and Push Generated SVG Diagrams
         uses: stefanzweifel/git-auto-commit-action@v5
