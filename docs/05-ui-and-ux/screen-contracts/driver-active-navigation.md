@@ -4,21 +4,50 @@ This specification defines the driver in-app turn-by-turn navigation HUD, maneuv
 
 ---
 
-## 1. UI Components & Layout Hierarchy
+## 1. Visual UI Layout & Multi-Layer Hierarchy
 
 ```mermaid
-graph TD
-    subgraph NavigationHUD [Driver Navigation HUD Viewport]
-        TopBanner["Maneuver Banner (Next Turn Icon + 250m + 'Turn Right on Pine St')"]
-        LaneGuidance["Lane Guidance Indicator (Arrows: [x] [x] [v] [ ])"]
-        MapCanvas["Interactive 3D Map Canvas (Vector OSM + Snapped Vehicle Cursor)"]
-        SpeedLimitBadge["Speed Limit HUD (Limit: 50 km/h | Current: 48 km/h)"]
-        TollBadge["Toll Road Indicator ('$4.50 Toll Ahead' + Avoid Toggle)"]
-        BottomPanel["Trip Status Bar (Remaining: 12 min · 4.8 km · 17:45 Arrival)"]
-        SlideAction["Slide to Complete / Arrived Button"]
-        SOSQuickBtn["Floating Emergency SOS Action Button"]
+flowchart TB
+    subgraph TerminalFrame ["📱 Driver Mobile Terminal · Active Navigation HUD (SCR-DRV-004)"]
+        direction TB
+
+        subgraph TopManeuverHUD ["Layer 1: Top Maneuver Guidance Banner (Dark Glassmorphism)"]
+            TurnIcon["↗️ <b>In 250 m</b> · Exit 431A to SFO Airport"]
+            NextManeuver["↪️ Then turn left on Domestic Terminals in 100m"]
+            LaneGuidance["🛣️ Lane Guidance: [✖] [✖] [<b>🟢</b>] [<b>🟢</b>] (Stay in 2 Right Lanes)"]
+        end
+
+        subgraph Map3DCanvas ["Layer 0: 3D Perspective Map Canvas (Heading Up)"]
+            NavPolyline["🗺️ Active Turn-by-Turn Route Polyline · Live Snapped Vehicle Arrow"]
+            SpeedLimitHUD["⚡ Speed: <b>62 km/h</b> (Limit: 65 km/h) · 🌉 Toll: $5.00 Ahead"]
+        end
+
+        subgraph BottomTripSheet ["Layer 2: Trip Progress & Control Sheet"]
+            direction TB
+            subgraph StatusRow ["Trip Metrics & ETA"]
+                Metrics["⏱️ <b>12 min</b> remaining · <b>4.8 km</b> · ETA <b>17:45</b>"]
+                RerouteBtn["⚡ Faster route found (-4 min) · [Accept]"]
+            end
+
+            subgraph ActionGestures ["Driver Completion Action"]
+                SlideComplete["🟩 <b>SLIDE TO COMPLETE TRIP >>>>>>>>></b> (Swipe Right)"]
+                SOSBtn["🚨 Floating Emergency SOS Button"]
+            end
+        end
     end
+
+    style TerminalFrame fill:#0F172A,stroke:#334155,stroke-width:3px
+    style TopManeuverHUD fill:#1E293B,stroke:#0EA5E9,stroke-width:2px
+    style TurnIcon fill:#0284C7,stroke:#0369A1,color:#FFFFFF,stroke-width:1px
+    style NextManeuver fill:#334155,stroke:#475569,color:#CBD5E1,stroke-width:1px
+    style LaneGuidance fill:#0F172A,stroke:#10B981,color:#FFFFFF,stroke-width:1px
+    style Map3DCanvas fill:#0284C7,stroke:#0369A1,stroke-width:2px
+    style BottomTripSheet fill:#1E293B,stroke:#475569,stroke-width:2px
+    style StatusRow fill:#0F172A,stroke:#334155,color:#FFFFFF,stroke-width:1px
+    style SlideComplete fill:#10B981,stroke:#047857,color:#FFFFFF,stroke-width:2px
+    style SOSBtn fill:#EF4444,stroke:#991B1B,color:#FFFFFF,stroke-width:1px
 ```
+
 
 ### 1.1 Header Maneuver HUD
 

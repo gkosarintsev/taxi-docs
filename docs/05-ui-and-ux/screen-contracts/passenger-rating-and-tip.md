@@ -4,22 +4,52 @@ This specification defines the post-trip settlement modal, 5-star interactive ra
 
 ---
 
-## 1. UI Components & Layout Wireframe
+## 1. Visual UI Layout & Multi-Layer Hierarchy
 
 ```mermaid
-graph TD
-    subgraph RatingModal [Passenger Post-Trip Rating Screen]
-        Avatar["Driver Avatar & Car Info (Michael · Toyota Camry)"]
-        TotalFare["Total Charged Display ($24.50 · Paid via Apple Pay)"]
-        StarWidget["Interactive 5-Star Rating Component (⭐⭐⭐⭐⭐)"]
-        TagMatrix["Dynamic Feedback Tag Chips (Conditioned on Star Score)"]
-        CommentBox["Optional Text Comment Input Box"]
-        TipSelector["Tip Selection Pills: [$1.00] [$3.00] [$5.00] [Custom] [No Tip]"]
-        SplitFareBtn["Split Fare with Friends Button (+ Add Co-Riders)"]
-        FavToggle["Toggle: 'Add Michael to Favorite Drivers'"]
-        SubmitBtn["Primary Action: Submit Review & Receipt"]
+flowchart TB
+    subgraph PhoneFrame ["📱 Smartphone Viewport · Post-Trip Rating & Tip (SCR-PAS-006)"]
+        direction TB
+
+        subgraph DriverSummary ["Layer 1: Driver & Fare Summary Header"]
+            Avatar["👤 Michael B. ★ 4.94 · Silver Toyota Camry (7XYZ912)"]
+            FareAmount["💳 <b>$24.50 Paid</b> via Apple Pay (Receipt Breakdown ▼)"]
+        end
+
+        subgraph StarRatingBox ["Layer 2: Interactive 5-Star Rating Bar"]
+            Stars["⭐ ⭐ ⭐ ⭐ ⭐<br/><i>Tap to Rate Your Trip</i>"]
+        end
+
+        subgraph FeedbackTags ["Layer 3: Adaptive Feedback Chips"]
+            Tags["✨ Pristine Car · 🛡️ Safe Driving · 🎵 Great Music · ⚡ Fast Route"]
+        end
+
+        subgraph TippingSection ["Layer 4: 100% Direct Driver Tip Chips"]
+            direction LR
+            Tip1["[$1.00]"]
+            Tip2["[$3.00]"]
+            Tip3["<b>[$5.00]</b>"]
+            TipCustom["[Custom]"]
+            TipZero["[No Tip]"]
+        end
+
+        subgraph SocialActions ["Layer 5: Split Fare & Favorites"]
+            SplitBtn["👥 Split Fare with Friends (+2 Co-Riders: $8.17 ea)"]
+            FavToggle["⭐ Add Michael to Favorite Drivers"]
+        end
+
+        SubmitCTA["🔵 <b>SUBMIT REVIEW & RECEIPT</b>"]
     end
+
+    style PhoneFrame fill:#F8FAFC,stroke:#334155,stroke-width:3px
+    style DriverSummary fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px
+    style StarRatingBox fill:#EFF6FF,stroke:#3B82F6,stroke-width:2px
+    style FeedbackTags fill:#FFFFFF,stroke:#CBD5E1,stroke-width:1px
+    style TippingSection fill:#FEF3C7,stroke:#D97706,stroke-width:1px
+    style SocialActions fill:#F8FAFC,stroke:#E2E8F0,stroke-width:1px
+    style SubmitCTA fill:#2563EB,stroke:#1D4ED8,color:#FFFFFF,stroke-width:2px
 ```
+
 
 ### 1.1 Header & Fare Summary
 

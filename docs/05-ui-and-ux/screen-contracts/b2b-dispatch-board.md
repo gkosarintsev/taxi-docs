@@ -4,16 +4,47 @@ This specification defines the multi-pane real-time web console used by enterpri
 
 ---
 
-## 1. Multi-Pane Web Layout Architecture
+## 1. Visual Multi-Pane Web Console Architecture
 
-- **Left Pane (Active Trip Table - 45% Width):**
-  - Search and filter bar (Filter by cost center, status: _Matching_, _Arriving_, _In Transit_).
-  - Virtualized scrollable data grid with real-time status badges.
-  - Quick action toolbar: _Cancel Booking_, _Manual Driver Re-assign_, _Download Trip Audit_.
-- **Right Pane (Live Spatial Map - 55% Width):**
-  - Mapbox GL JS vector map with real-time fleet vehicle markers and live trip route polylines.
-  - H3 Surge heatmap overlay toggle.
-  - Vehicle telemetry card popup upon marker click.
+```mermaid
+flowchart TB
+    subgraph WebBrowser ["🖥️ Desktop Web Browser · B2B Dispatcher Command Console (SCR-B2B-001)"]
+        direction TB
+
+        subgraph TopBar ["Layer 1: Enterprise Header & Global Fleet Filter Bar"]
+            Header["🏢 <b>Acme Corp Fleet & Dispatch Operations</b> · Active Rides: <b>42</b> · Online Fleet: <b>128</b> · Total Spend Today: <b>$1,840.50</b>"]
+        end
+
+        subgraph SplitView ["Multi-Pane Dispatch View (Desktop Split-Screen)"]
+            direction LR
+
+            subgraph LeftGrid ["Active Trips Data Grid (45% Width)"]
+                FilterRow["🔍 Search Employee / Driver / Cost Center · Status: [All ▼]"]
+                Row1["🚗 <b>#CORP-9102</b> · Sarah K. (Marketing) ➔ SFO · Driver: Alex M. (7XYZ912) · <b>IN_TRANSIT (8 min)</b> · $34.20"]
+                Row2["🚗 <b>#CORP-9103</b> · John D. (Sales) ➔ 555 Market · Driver: Elena V. · <b>ARRIVING (2 min)</b> · $18.50"]
+                Row3["⏳ <b>#CORP-9104</b> · David P. (Engineering) · <b>MATCHING DRIVER...</b> · $24.00"]
+            end
+
+            subgraph RightMap ["Live Spatial Fleet & Route Map (55% Width)"]
+                LiveMapCanvas["🗺️ <b>Real-Time Mapbox Vector Canvas</b><br/>Fleet Markers · Active Route Polylines · H3 Surge Overlay Toggle"]
+                SelectedCard["📌 Selected Trip #CORP-9102: Speed 58 km/h · On-time · [Manual Re-assign] [Cancel]"]
+            end
+        end
+    end
+
+    style WebBrowser fill:#F8FAFC,stroke:#334155,stroke-width:3px
+    style TopBar fill:#0F172A,stroke:#38BDF8,color:#FFFFFF,stroke-width:2px
+    style SplitView fill:#FFFFFF,stroke:#CBD5E1,stroke-width:1px
+    style LeftGrid fill:#F8FAFC,stroke:#94A3B8,stroke-width:1px
+    style FilterRow fill:#FFFFFF,stroke:#E2E8F0,stroke-width:1px
+    style Row1 fill:#EFF6FF,stroke:#3B82F6,stroke-width:1px
+    style Row2 fill:#ECFDF5,stroke:#10B981,stroke-width:1px
+    style Row3 fill:#FEF3C7,stroke:#F59E0B,stroke-width:1px
+    style RightMap fill:#E0F2FE,stroke:#0284C7,stroke-width:1px
+    style LiveMapCanvas fill:#0284C7,stroke:#0369A1,color:#FFFFFF,stroke-width:1px
+    style SelectedCard fill:#FFFFFF,stroke:#334155,stroke-width:1px
+```
+
 
 ---
 

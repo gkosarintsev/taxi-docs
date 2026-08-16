@@ -4,20 +4,50 @@ This contract defines the desktop/web operations console used by Safety Agents d
 
 ---
 
-## 1. UI Components & Multi-Pane Layout
+## 1. Visual Multi-Pane Desktop Console Layout
 
 ```mermaid
-graph TD
-    subgraph SOCIncidentDashboard [24/7 Safety Operations Incident Console]
-        AlertBanner["CRITICAL INCIDENT BANNER (SOS Triggered · Ride #77218 · Priority: P0)"]
-        LiveTelemetryMap["Live Vector Map (Vehicle Real-Time GPS @ 10 Hz + Snapped Polyline)"]
-        SensorDataPane["High-G Crash Sensor Telemetry (IMU Accelerometer Graph · Peak 8.4 G)"]
-        PartyProfilePane["Rider & Driver Profile Card (Names, Emergency Contacts, Vehicle Plate)"]
-        EmergencyPushCard["Emergency Dispatch Bridge ('Push Live Tracking to Police PSAP / 911')"]
-        VoIPBridgePane["3-Way In-App VoIP Call Console (Operator + Rider + Driver Bridge)"]
-        IncidentLogSheet["Incident Timeline & Compliance Audit Log (Auto-recording timestamps)"]
+flowchart TB
+    subgraph DesktopConsole ["🖥️ Safety Operations Center (SOC) Incident Console · Viewport (SCR-OPS-001)"]
+        direction TB
+
+        subgraph P0Banner ["🔴 CRITICAL P0 INCIDENT ACTIVE · Ride #77218 · SOS Triggered 14:22:15Z"]
+            AlertSummary["⚠️ High-G Crash Sensor Detected (8.4 G Impact) · SFO Airport Corridor · Priority Escalation"]
+        end
+
+        subgraph MainSplitView ["Multi-Pane Incident Command Center"]
+            direction LR
+
+            subgraph LeftCol ["Telemetry & Spatial Tracking (50% Width)"]
+                LiveMap["🗺️ <b>Live Vector Map @ 10 Hz Telemetry</b><br/>Snapped Polyline · Vehicle Marker: 37.78972, -122.40015 (Speed: 0 km/h)"]
+                CrashSensor["📈 <b>IMU Accelerometer Telemetry Curve</b><br/>Impact Vector: Front-Left · Peak 8.4 G @ 14:22:14Z · Post-crash stationary"]
+            end
+
+            subgraph RightCol ["Parties & Incident Triage (50% Width)"]
+                Profiles["👤 <b>Rider:</b> Sarah K. (+14155551234) · Contacted<br/>🚘 <b>Driver:</b> Michael R. · Toyota Camry (7XYZ912)"]
+                VoIPConsole["🎙️ <b>3-Way VoIP Bridge:</b> [Operator 🟢] [Rider 🔴] [Driver 🟢]<br/><i>Cabin audio recording enabled & archived</i>"]
+                DispatchBridge["🚨 <b>[ PUSH LIVE GPS TO POLICE / 911 PSAP ]</b><br/><i>Transmits real-time cryptographic tracking token link</i>"]
+            end
+        end
+
+        subgraph BottomAuditBar ["Compliance & Audit Log"]
+            AuditTrail["📜 14:22:15Z SOS Signal Ingested ➔ 14:22:18Z Operator Assigned ➔ 14:22:24Z PSAP Notified"]
+        end
     end
+
+    style DesktopConsole fill:#0F172A,stroke:#334155,stroke-width:3px
+    style P0Banner fill:#7F1D1D,stroke:#EF4444,color:#FFFFFF,stroke-width:2px
+    style AlertSummary fill:#991B1B,color:#FFFFFF,stroke-width:1px
+    style LeftCol fill:#1E293B,stroke:#475569,stroke-width:1px
+    style LiveMap fill:#0284C7,stroke:#0369A1,color:#FFFFFF,stroke-width:1px
+    style CrashSensor fill:#0F172A,stroke:#F59E0B,color:#FFFFFF,stroke-width:1px
+    style RightCol fill:#1E293B,stroke:#475569,stroke-width:1px
+    style Profiles fill:#0F172A,stroke:#334155,color:#FFFFFF,stroke-width:1px
+    style VoIPConsole fill:#0F172A,stroke:#10B981,color:#FFFFFF,stroke-width:1px
+    style DispatchBridge fill:#DC2626,stroke:#EF4444,color:#FFFFFF,stroke-width:2px
+    style BottomAuditBar fill:#1E293B,stroke:#334155,color:#CBD5E1,stroke-width:1px
 ```
+
 
 ### 1.1 Live 10 Hz High-Frequency Telemetry
 

@@ -4,19 +4,40 @@ This specification defines the high-urgency 15-second ride offer modal presented
 
 ---
 
-## 1. UI Components & Layout
+## 1. Visual UI Layout & Multi-Layer Hierarchy
 
-- **Header:** Full-width pulsating radial countdown timer ($15\text{s} \to 0\text{s}$) with audio chime.
-- **Fare Highlight Card:**
-  - Guaranteed Driver Payout: Large prominent green font (`$14.80`).
-  - Surge Badge if applicable (e.g. `🔥 1.4x Surge included`).
-- **Pickup & Trip Metrics:**
-  - Pickup Distance & ETA: `1.2 km · 3 min away`.
-  - Trip Destination: `Downtown Financial District · 7.2 km (15 min trip)`.
-  - Rider Rating: `⭐ 4.92 (180 trips)`.
-- **Primary Actions:**
-  - Big Circular Touch Target: `ACCEPT OFFER` (Green `#16A34A`, haptic feedback).
-  - Secondary Top-Right Close Button: `Decline` (Light grey `#64748B`).
+```mermaid
+flowchart TB
+    subgraph TerminalFrame ["📱 Driver Mobile Terminal · 15s Offer Modal (SCR-DRV-002)"]
+        direction TB
+
+        subgraph TopCountdownBar ["Layer 1: Radial Urgency Countdown (15s TTL)"]
+            TimerDisplay["⏱️ <b>15s COUNTDOWN (Audio Chime Active)</b> · [✖ Decline Offer]"]
+        end
+
+        subgraph PayoutHeroCard ["Layer 2: Guaranteed Driver Payout Card"]
+            Cash["💵 <size:20><b>$14.80 Payout</b></size><br/>⚡ <i>Includes 1.4x Surge (+$3.20)</i>"]
+        end
+
+        subgraph RouteMetricsCard ["Layer 3: Pickup & Trip Trajectory Details"]
+            PickupInfo["📍 <b>Pickup (1.2 km · 3 min):</b> 450 Market St"]
+            DropoffInfo["🏁 <b>Dropoff (7.2 km · 15 min):</b> Mission Bay Blvd S"]
+            RiderInfo["👤 Passenger: Sarah (★ 4.92 · 180 trips)"]
+        end
+
+        subgraph BigActionZone ["Layer 4: High-Visibility Touch Target"]
+            AcceptCTA["🟩 <size:18><b>ACCEPT OFFER (TAP TO CONFIRM)</b></size><br/><i>Auto-opens turn-by-turn navigation to pickup</i>"]
+        end
+    end
+
+    style TerminalFrame fill:#0F172A,stroke:#334155,stroke-width:3px
+    style TopCountdownBar fill:#FEF3C7,stroke:#D97706,stroke-width:2px
+    style PayoutHeroCard fill:#ECFDF5,stroke:#059669,stroke-width:2px
+    style RouteMetricsCard fill:#1E293B,stroke:#475569,color:#FFFFFF,stroke-width:1px
+    style BigActionZone fill:#10B981,stroke:#047857,color:#FFFFFF,stroke-width:3px
+    style AcceptCTA fill:#10B981,stroke:#047857,color:#FFFFFF,stroke-width:2px
+```
+
 
 ---
 

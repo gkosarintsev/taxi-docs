@@ -4,19 +4,42 @@ This specification defines the driver financial wallet screen, real-time balance
 
 ---
 
-## 1. UI Layout & Component Hierarchy
+## 1. Visual UI Layout & Multi-Layer Hierarchy
 
 ```mermaid
-graph TD
-    subgraph DriverWalletView [Driver Wallet & Payout Viewport]
-        BalanceCard["Available Balance Card ('$342.10 Available Now')"]
-        InstantCashoutBtn["'Instant Cashout to Debit Card' Primary Button (Fee: $0.50 · In 1-2 min)"]
-        WeeklyEarningsChart["Weekly Revenue Bar Chart (Mon-Sun Earnings Breakdown)"]
-        BreakdownPills["Earnings Categories (Fares: $280 · Surge: $42 · Tips: $20.10)"]
-        BankCardSelector["Linked Payout Method (Visa Debit ···· 9812 · Default)"]
-        RecentTransactionsList["Transaction Ledger History (Trips · Bonuses · Instant Cashouts · Fuel Discounts)"]
+flowchart TB
+    subgraph TerminalFrame ["📱 Driver Mobile Terminal · Wallet & Instant Payouts (SCR-DRV-007)"]
+        direction TB
+
+        subgraph BalanceCard ["Layer 1: Available Balance & Cashout Hero"]
+            CurrentBal["💵 <b>Available Balance: $342.10</b><br/><i>Auto-deposits free every Monday at 04:00 AM</i>"]
+            CashoutCTA["🟩 <b>INSTANT CASHOUT TO DEBIT CARD ($341.60)</b><br/><i>Fast transfer in 1-2 minutes · $0.50 processing fee</i>"]
+        end
+
+        subgraph WeeklyChart ["Layer 2: 7-Day Revenue Analytics"]
+            Bars["📊 Weekly Revenue: <b>$1,420.80</b> · 38.5 hrs online ($36.90/hr)<br/>Mon $180 · Tue $210 · Wed $240 · Thu $190 · Fri $310 · Sat $290.80"]
+        end
+
+        subgraph BreakdownPills ["Layer 3: Income Stream Breakdown"]
+            IncomeFares["🚗 Fares: $1,120.00"]
+            IncomeSurge["⚡ Surge: $165.00"]
+            IncomeTips["🎁 Tips: $135.80 (100%)"]
+        end
+
+        subgraph PayoutMethod ["Layer 4: Linked Bank Account & Transactions"]
+            LinkedCard["💳 Visa Debit •••• 9812 (Chase Bank · Instant Supported)"]
+            LedgerList["📜 Recent History: Trip #77218 (+$29.80) · Instant Cashout (-$150.00)"]
+        end
     end
+
+    style TerminalFrame fill:#F8FAFC,stroke:#1E293B,stroke-width:3px
+    style BalanceCard fill:#EFF6FF,stroke:#2563EB,stroke-width:2px
+    style CashoutCTA fill:#10B981,stroke:#047857,color:#FFFFFF,stroke-width:2px
+    style WeeklyChart fill:#FFFFFF,stroke:#CBD5E1,stroke-width:1px
+    style BreakdownPills fill:#F8FAFC,stroke:#E2E8F0,stroke-width:1px
+    style PayoutMethod fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px
 ```
+
 
 ### 1.1 Balance & Instant Cashout
 
