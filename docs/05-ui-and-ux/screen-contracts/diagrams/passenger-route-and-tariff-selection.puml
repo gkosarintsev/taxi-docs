@@ -1,0 +1,57 @@
+@startuml passenger-route-and-tariff-selection
+salt
+
+{+
+  == Passenger App - Route & Tariff Selection (SCR-RIDER-002)
+  .
+  {+
+    == Layer 1: Top Address & Route Bar (Floating Island)
+    [A] Pickup: | "555 Market St, San Francisco    "
+    [B] Dropoff: | "SFO Airport Terminal 2          "
+    [+ Add Intermediate Stop]
+  }
+  .
+  {+
+    == Layer 0: Full-Screen 3D Vector Map Viewport
+    {SI
+      Route Polyline: 24 min | 11.4 km (No traffic delays)
+    }
+  }
+  .
+  {+
+    == Layer 2: Sliding Bottom Sheet
+    {+
+      == Horizontal Tariff Selection Carousel
+      {+
+        **Economy**
+        **$18.50**
+        1.3x Surge
+        3 min ETA
+      } | {+
+        Comfort
+        $24.00
+        Extra Legroom
+        5 min ETA
+      } | {+
+        Business
+        $38.00
+        Executive Sedan
+        8 min ETA
+      } | {+
+        XL Group
+        $46.50
+        6-Seater SUV
+        6 min ETA
+      }
+    }
+    .
+    {+
+      == Payment Method & Discounts
+      Visa **** 4242 | [Change] | Promo: SUMMER2026 (-$5.00) | [Ride Options]
+    }
+    .
+    [**CONFIRM & BOOK ECONOMY | $18.50** (Quote Locked: 118s)]
+  }
+}
+
+@enduml

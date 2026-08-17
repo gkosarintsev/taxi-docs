@@ -1,0 +1,32 @@
+@startuml driver-order-offer
+salt
+
+{+
+  == Driver 15s Offer Modal (SCR-DRV-002)
+  .
+  {+
+    == Layer 1: Radial Urgency Countdown (15s TTL)
+    **15s COUNTDOWN (Audio Chime Active)** | [X Decline Offer]
+  }
+  .
+  {+
+    == Layer 2: Guaranteed Driver Payout Card
+    **$14.80 Payout**
+    Includes 1.4x Surge (+$3.20)
+  }
+  .
+  {+
+    == Layer 3: Pickup & Trip Trajectory Details
+    Pickup (1.2 km | 3 min): | 450 Market St
+    Dropoff (7.2 km | 15 min): | Mission Bay Blvd S
+    Passenger: | Sarah (4.92 | 180 trips)
+  }
+  .
+  {+
+    == Layer 4: High-Visibility Touch Target
+    [**ACCEPT OFFER (TAP TO CONFIRM)**]
+    Auto-opens turn-by-turn navigation to pickup
+  }
+}
+
+@enduml

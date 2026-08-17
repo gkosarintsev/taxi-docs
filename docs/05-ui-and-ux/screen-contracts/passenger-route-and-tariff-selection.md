@@ -9,50 +9,9 @@ This contract defines the client-side interaction, geocoding autocomplete, multi
 > [!NOTE]
 > **Vector UI Wireframe:** View the standalone vector screen mockup: [passenger-route-selection.svg](../wireframes/passenger-route-selection.svg) ([.puml source](../wireframes/passenger-route-selection.puml)).
 
-```mermaid
-flowchart TB
-    subgraph PhoneFrame ["📱 Smartphone Viewport · Passenger App (SCR-RIDER-002)"]
-        direction TB
+![Passenger Route & Tariff Selection UI Schema](diagrams/passenger-route-and-tariff-selection.svg)
 
-        subgraph TopBar ["Layer 1: Top Address & Route Bar (Floating Island)"]
-            A["📍 [A] Pickup: 555 Market St, San Francisco"]
-            B["🏁 [B] Dropoff: SFO Airport Terminal 2"]
-            AddStop["➕ Add Intermediate Stop (+1)"]
-        end
-
-        subgraph MapCanvas ["Layer 0: Full-Screen 3D Vector Map Viewport"]
-            Route["🗺️ Route Polyline: 24 min · 11.4 km (No traffic delays)"]
-        end
-
-        subgraph BottomSheet ["Layer 2: Sliding Bottom Sheet (Swipe Up / Down)"]
-            direction TB
-            subgraph Tariffs ["Horizontal Tariff Selection Carousel (Swipe ◄ ►)"]
-                T1["🚗 <b>Economy</b><br/><b>$18.50</b><br/>⚡ 1.3x Surge<br/>3 min ETA"]
-                T2["✨ <b>Comfort</b><br/><b>$24.00</b><br/>Extra Legroom<br/>5 min ETA"]
-                T3["💼 <b>Business</b><br/><b>$38.00</b><br/>Executive Sedan<br/>8 min ETA"]
-                T4["🚐 <b>XL Group</b><br/><b>$46.50</b><br/>6-Seater SUV<br/>6 min ETA"]
-            end
-
-            subgraph PayRow ["Payment Method & Discounts"]
-                Pay["💳 Visa •••• 4242 (Change)"]
-                Promo["🏷️ Promo: SUMMER2026 (-$5.00)"]
-                Options["⚙️ Ride Options (Child Seat)"]
-            end
-
-            CTA["🔵 <b>CONFIRM & BOOK ECONOMY · $18.50</b> (Quote Locked: 118s)"]
-        end
-    end
-
-    style PhoneFrame fill:#F8FAFC,stroke:#334155,stroke-width:3px
-    style TopBar fill:#FFFFFF,stroke:#94A3B8,stroke-width:2px
-    style MapCanvas fill:#E0F2FE,stroke:#0284C7,stroke-width:2px
-    style BottomSheet fill:#FFFFFF,stroke:#64748B,stroke-width:2px
-    style T1 fill:#EFF6FF,stroke:#2563EB,stroke-width:2px
-    style T2 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1px
-    style T3 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1px
-    style T4 fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1px
-    style CTA fill:#2563EB,stroke:#1D4ED8,color:#FFFFFF,stroke-width:2px
-```
+> _Source: [diagrams/passenger-route-and-tariff-selection.puml](diagrams/passenger-route-and-tariff-selection.puml)_
 
 ### 1.1 Bottom Sheet Dynamics & Expansion Heights
 

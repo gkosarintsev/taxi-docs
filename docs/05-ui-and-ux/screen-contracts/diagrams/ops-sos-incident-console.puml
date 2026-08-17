@@ -1,0 +1,41 @@
+@startuml ops-sos-incident-console
+salt
+
+{+
+  {#
+    == CRITICAL P0 INCIDENT ACTIVE | Ride #77218 | SOS Triggered 14:22:15Z
+    High-G Crash Sensor Detected (8.4 G Impact) | SFO Airport Corridor | Priority Escalation
+    .
+    {+
+      == Multi-Pane Incident Command Center
+      {+
+        == Telemetry & Spatial Tracking (50%)
+        {SI
+          Live Vector Map @ 10 Hz Telemetry
+          Snapped Polyline | Vehicle: 37.78972, -122.40015 (Speed: 0 km/h)
+        }
+        ---
+        IMU Accelerometer Telemetry Curve
+        Impact Vector: Front-Left | Peak 8.4 G @ 14:22:14Z | Post-crash stationary
+      } | {+
+        == Parties & Incident Triage (50%)
+        **Rider:** Sarah K. (+14155551234) | Contacted
+        **Driver:** Michael R. | Toyota Camry (7XYZ912)
+        ---
+        **3-Way VoIP Bridge:**
+        [Operator OK] | [Rider OFFLINE] | [Driver OK]
+        Cabin audio recording enabled & archived
+        ---
+        [**PUSH LIVE GPS TO POLICE / 911 PSAP**]
+        Transmits real-time cryptographic tracking token link
+      }
+    }
+    .
+    {+
+      == Compliance & Audit Log
+      14:22:15Z SOS Signal Ingested -> 14:22:18Z Operator Assigned -> 14:22:24Z PSAP Notified
+    }
+  }
+}
+
+@enduml

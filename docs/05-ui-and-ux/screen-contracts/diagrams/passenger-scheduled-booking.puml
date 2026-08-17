@@ -1,0 +1,36 @@
+@startuml passenger-scheduled-booking
+salt
+
+{+
+  == Scheduled Ride Booking (SCR-RIDER-004)
+  .
+  {+
+    == Layer 1: Top Navigation Bar
+    Schedule a Ride in Advance | [X Dismiss]
+  }
+  .
+  {+
+    == Layer 2: Interactive Date & Time Picker Wheel
+    Date: | Tue, Aug 18, 2026 | [< Prev] [Next >]
+    Time: | 06 : 30  AM | (5-min interval snap wheel)
+  }
+  .
+  {+
+    == Layer 3: Route & Guaranteed Fare Card
+    Pickup: | 742 Evergreen Terrace
+    Dropoff: | SFO Terminal 2
+    ---
+    **$42.00 Guaranteed Upfront Price**
+    Includes $3.50 Advance Reservation Matching Fee
+  }
+  .
+  {+
+    == Layer 4: Cancellation Policy
+    Free cancellation up to 60 min before pickup.
+    ($10.00 late cancellation fee applies if driver dispatched)
+  }
+  .
+  [**CONFIRM SCHEDULED RIDE FOR 06:30 AM**]
+}
+
+@enduml

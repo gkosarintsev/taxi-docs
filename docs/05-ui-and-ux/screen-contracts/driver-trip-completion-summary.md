@@ -6,42 +6,9 @@ This contract defines the driver terminal behavior upon arriving at the destinat
 
 ## 1. Visual UI Layout & Multi-Layer Hierarchy
 
-```mermaid
-flowchart TB
-    subgraph TerminalFrame ["📱 Driver Mobile Terminal · Trip Completion & Receipt (SCR-DRV-005)"]
-        direction TB
+![Driver Trip Completion & Earnings Summary UI Schema](diagrams/driver-trip-completion-summary.svg)
 
-        subgraph TopBanner ["Layer 1: Destination Arrival Header"]
-            ArrivedDestination["🏁 <b>Arrived at SFO Airport Terminal 2</b> · Dropoff Complete"]
-        end
-
-        subgraph NetEarningsCard ["Layer 2: Net Earnings Hero Card"]
-            NetCash["💵 <size:18><b>+$29.80 Net Earnings</b></size><br/><i>Auto-credited to your instant driver wallet</i>"]
-            TipAlert["🎁 <b>+$5.00 Tip Added by Sarah!</b> (100% to you)"]
-        end
-
-        subgraph BreakdownAccordion ["Layer 3: Itemized Fare Breakdown Receipt"]
-            Base["Base Fare: $4.50 · Distance & Time: $24.50"]
-            Surge["⚡ Surge 1.2x: +$5.80 · 🌉 Toll Reimbursement: +$6.50"]
-            PlatformFee["Platform Commission (20%): -$7.15 · Paid Wait: +$0.45"]
-        end
-
-        subgraph RiderRatingSection ["Layer 4: Passenger Rating & Feedback"]
-            RateStars["⭐ ⭐ ⭐ ⭐ ⭐ · [Rate Sarah K.]"]
-            PositiveTags["✓ Polite · ✓ On-time at pickup · ✓ Respectful"]
-        end
-
-        NextRideCTA["🟩 <b>READY FOR NEXT RIDE (RETURN ONLINE)</b>"]
-    end
-
-    style TerminalFrame fill:#F8FAFC,stroke:#1E293B,stroke-width:3px
-    style TopBanner fill:#ECFDF5,stroke:#059669,stroke-width:2px
-    style NetEarningsCard fill:#EFF6FF,stroke:#2563EB,stroke-width:2px
-    style TipAlert fill:#FEF3C7,stroke:#D97706,stroke-width:1px
-    style BreakdownAccordion fill:#FFFFFF,stroke:#CBD5E1,stroke-width:1px
-    style RiderRatingSection fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px
-    style NextRideCTA fill:#10B981,stroke:#047857,color:#FFFFFF,stroke-width:2px
-```
+> _Source: [diagrams/driver-trip-completion-summary.puml](diagrams/driver-trip-completion-summary.puml)_
 
 
 ### 1.1 `Slide to Complete Trip` Gesture

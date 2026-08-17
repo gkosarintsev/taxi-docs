@@ -6,39 +6,9 @@ This contract defines the client-side state machine, WebSocket event bindings, t
 
 ## 1. Visual UI Layout & Multi-Layer Hierarchy
 
-```mermaid
-flowchart TB
-    subgraph PhoneFrame ["📱 Smartphone Viewport · Passenger Radar Search (SCR-RIDER-005)"]
-        direction TB
+![Passenger Radar Search UI Schema](diagrams/passenger-ride-search.svg)
 
-        subgraph TopBar ["Layer 1: Top Search Status Bar (Floating Island)"]
-            AddressPill["📍 555 Market St ➔ SFO Terminal 2"]
-            WaitETA["⏱️ Connecting with nearby drivers (~2-4 min)..."]
-        end
-
-        subgraph MapCanvas ["Layer 0: Full-Screen Radar Map Viewport"]
-            RadarSweep["📡 Pulsating Concentric Radar Rings (H3 Res 7 Area Sweep)"]
-            NearbyDrivers["🚗 4 Candidate Drivers in Vicinity (Simulated Pins)"]
-        end
-
-        subgraph BottomSheet ["Layer 2: Search Status & Radar Progress Sheet"]
-            direction TB
-            subgraph StatusCard ["Matching Progress Information"]
-                TariffBadge["🚗 <b>Economy Class · $18.50</b> (⚡ 1.3x Surge Locked)"]
-                ProgressTimer["⏳ Finding best driver: <b>0:42 / 3:00</b>"]
-            end
-
-            CancelCTA["⚪ <b>CANCEL SEARCH</b> (Immediate 100% Refund)"]
-        end
-    end
-
-    style PhoneFrame fill:#F8FAFC,stroke:#334155,stroke-width:3px
-    style TopBar fill:#FFFFFF,stroke:#94A3B8,stroke-width:2px
-    style MapCanvas fill:#E0F2FE,stroke:#0284C7,stroke-width:2px
-    style BottomSheet fill:#FFFFFF,stroke:#64748B,stroke-width:2px
-    style StatusCard fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1px
-    style CancelCTA fill:#FFFFFF,stroke:#EF4444,color:#DC2626,stroke-width:2px
-```
+> _Source: [diagrams/passenger-ride-search.puml](diagrams/passenger-ride-search.puml)_
 
 
 ---

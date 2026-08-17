@@ -1,0 +1,53 @@
+@startuml passenger-driver-arrived-and-pickup
+salt
+
+{+
+  == Passenger App - Driver Arrived (SCR-RIDER-006)
+  .
+  {+
+    == Layer 1: Top Status Banner (Floating Island)
+    {G} **DRIVER HAS ARRIVED AT PICKUP SPOT**
+    ---
+    [Safety Toolkit & Emergency SOS]
+  }
+  .
+  {+
+    == Layer 0: Map Viewport (Zoomed to Pickup Spot)
+    {SI
+      Driver Car Pin (Live Orientation)
+      Walking Guide: 45m | 1 min walk
+    }
+  }
+  .
+  {+
+    == Layer 2: Pickup Information & Verification Sheet
+    {+
+      == High-Contrast Vehicle Identification Card
+      License Plate: | **7XYZ912**
+      Vehicle: | Silver Toyota Camry Hybrid
+    }
+    .
+    {+
+      == 4-Digit Security Ride Verification OTP
+      Your Security PIN:
+      **[ 4 ] [ 9 ] [ 1 ] [ 2 ]**
+      Tell this code to the driver to start trip
+    }
+    .
+    {+
+      == Driver Profile & Communications
+      **Alex M.** | 4.94 (2,840 trips)
+      ---
+      [Call (Masked VoIP)] | [In-App Chat]
+    }
+    .
+    {+
+      == Dual-Stage Waiting Timer Bar
+      **Free Waiting: 02:15 remaining** (Paid wait starts after 3:00 at $0.45/min)
+    }
+    .
+    [Cancel Ride (Cancellation fee may apply if > 2 min)]
+  }
+}
+
+@enduml

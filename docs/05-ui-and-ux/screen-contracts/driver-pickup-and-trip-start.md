@@ -9,52 +9,9 @@ This specification defines the driver terminal behavior upon arriving at the rid
 > [!NOTE]
 > **Vector UI Wireframe:** View the standalone vector screen mockup: [driver-pickup-and-start.svg](../wireframes/driver-pickup-and-start.svg) ([.puml source](../wireframes/driver-pickup-and-start.puml)).
 
-```mermaid
-flowchart TB
-    subgraph DriverTerminal ["📱 Driver Mobile Terminal Viewport (SCR-DRV-003)"]
-        direction TB
+![Driver Pickup Spot & Trip Start UI Schema](diagrams/driver-pickup-and-trip-start.svg)
 
-        subgraph TopStatus ["Layer 1: Top Arrival Status HUD"]
-            StatusText["🟢 <b>✓ YOU ARE AT PICKUP SPOT: 555 Market St</b>"]
-            NavPinBtn["📍 Navigate to Exact Pin (Waze / Google Maps / Native)"]
-        end
-
-        subgraph MapCanvas ["Layer 0: High-Precision Pickup Spot Map Canvas"]
-            Geofence["🗺️ Passenger Pin (Accuracy: ±3m) · Geofence Circle (Radius: 30m)"]
-        end
-
-        subgraph BottomHUD ["Layer 2: Bottom Pickup Control Sheet"]
-            direction TB
-            subgraph RiderCard ["Passenger Information & Communication"]
-                RiderInfo["👤 <b>Sarah K.</b> (★ 4.92 · 142 rides)"]
-                Comms["📞 Masked VoIP Call · 💬 In-App Chat"]
-            end
-
-            subgraph TimerBox ["Dual-Stage Wait Timer HUD"]
-                TimerBadge["⏱️ <b>Free Waiting: 02:15</b> (Paid wait starts after 3:00 at $0.45/min)"]
-            end
-
-            subgraph OTPBox ["4-Digit Security OTP Keypad Input"]
-                OTPInput["🔐 Enter Passenger Code: [ 4 ] [ 9 ] [ 1 ] [ 2 ] · [✓ Verify]"]
-            end
-
-            subgraph ActionGestures ["Trip Execution Actions"]
-                SlideWidget["🟩 <b>SLIDE TO START TRIP >>>>>>>>></b> (Swipe Right with Haptic Pulse)"]
-                NoShowBtn["⚠️ Passenger No-Show (Active after 5:00 min wait · $6.00 Fee)"]
-            end
-        end
-    end
-
-    style DriverTerminal fill:#F8FAFC,stroke:#1E293B,stroke-width:3px
-    style TopStatus fill:#ECFDF5,stroke:#059669,stroke-width:2px
-    style MapCanvas fill:#E0F2FE,stroke:#0284C7,stroke-width:2px
-    style BottomHUD fill:#FFFFFF,stroke:#475569,stroke-width:2px
-    style RiderCard fill:#F1F5F9,stroke:#94A3B8,stroke-width:1px
-    style TimerBox fill:#FEF3C7,stroke:#D97706,stroke-width:1px
-    style OTPBox fill:#EFF6FF,stroke:#3B82F6,stroke-width:1px
-    style SlideWidget fill:#10B981,stroke:#047857,color:#FFFFFF,stroke-width:2px
-    style NoShowBtn fill:#FEE2E2,stroke:#EF4444,color:#991B1B,stroke-width:1px
-```
+> _Source: [diagrams/driver-pickup-and-trip-start.puml](diagrams/driver-pickup-and-trip-start.puml)_
 
 ### 1.1 Touch & Gesture Safety Invariants
 

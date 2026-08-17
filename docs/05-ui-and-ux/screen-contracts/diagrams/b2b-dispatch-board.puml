@@ -1,0 +1,38 @@
+@startuml b2b-dispatch-board
+salt
+
+{+
+  {#
+    == B2B Dispatcher Command Console (SCR-B2B-001)
+    .
+    {+
+      == Layer 1: Enterprise Header & Global Fleet Filter Bar
+      Acme Corp Fleet & Dispatch Operations | Active Rides: **42** | Online Fleet: **128** | Total Spend Today: **$1,840.50**
+    }
+    .
+    {+
+      == Multi-Pane Dispatch View
+      {+
+        == Active Trips Data Grid (45%)
+        [Search Employee / Driver / Cost Center] | Status: [All      v]
+        ---
+        #CORP-9102 | Sarah K. (Marketing) -> SFO | Driver: Alex M. (7XYZ912) | **IN_TRANSIT (8 min)** | $34.20
+        ---
+        #CORP-9103 | John D. (Sales) -> 555 Market | Driver: Elena V. | **ARRIVING (2 min)** | $18.50
+        ---
+        #CORP-9104 | David P. (Engineering) | **MATCHING DRIVER...** | $24.00
+      } | {+
+        == Live Spatial Fleet & Route Map (55%)
+        {SI
+          Real-Time Mapbox Vector Canvas
+          Fleet Markers | Active Route Polylines | H3 Surge Overlay Toggle
+        }
+        ---
+        Selected Trip #CORP-9102: Speed 58 km/h | On-time
+        [Manual Re-assign] | [Cancel]
+      }
+    }
+  }
+}
+
+@enduml

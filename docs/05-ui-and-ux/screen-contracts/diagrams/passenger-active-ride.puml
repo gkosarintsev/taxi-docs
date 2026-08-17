@@ -1,0 +1,41 @@
+@startuml passenger-active-ride
+salt
+
+{+
+  == Passenger Active Ride (SCR-RIDER-007)
+  .
+  {+
+    == Layer 1: Live Trip Progress Island (Floating)
+    **Arriving in 14 min** | 8.2 km | On-time (ETA 18:02)
+    ---
+    [Safety Shield (SOS & Live Share)]
+  }
+  .
+  {+
+    == Layer 0: Full-Screen Live Map Canvas
+    {SI
+      Snapped Vehicle Cursor (60fps Cubic Spline)
+      Route Polyline with Live Traffic
+      Destination: SFO International Airport Terminal 2
+    }
+  }
+  .
+  {+
+    == Layer 2: Driver Info & Trip Actions Sheet
+    {+
+      == Driver & Vehicle Info
+      **Michael R.** 4.94 | Silver Toyota Camry (7XYZ912)
+      ---
+      [Call Driver (VoIP)] | [Message]
+    }
+    .
+    {+
+      == In-Transit Safety & Controls
+      [Share Live Tracking Link (SMS / WhatsApp)]
+      ---
+      [Edit Destination / Add Stop]
+    }
+  }
+}
+
+@enduml

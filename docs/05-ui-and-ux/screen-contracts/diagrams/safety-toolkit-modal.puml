@@ -1,0 +1,37 @@
+@startuml safety-toolkit-modal
+salt
+
+{+
+  == Safety Toolkit Modal (SCR-COM-008)
+  .
+  {+
+    == Layer 1: Safety Shield Header
+    **Safety Toolkit** | Ride #ride_9918 | [X Close]
+    ---
+    Verified Driver: Michael R. | Background Checked | 7XYZ981
+  }
+  .
+  {+
+    == Layer 2: 4-Digit Security PIN Box
+    Your Boarding PIN:
+    **[ 4 ] [ 8 ] [ 9 ] [ 2 ]**
+    Ensure your driver confirms this code before entering
+  }
+  .
+  {+
+    == Layer 3: Security & Monitoring Actions
+    [Share Live Trip Status (SMS GPS link to trusted contacts)]
+    ---
+    [Record In-Cabin Audio (Encrypted on device | Safety vault)]
+    ---
+    [24/7 Platform Safety Response Agent (Direct voice connection)]
+  }
+  .
+  {+
+    == Layer 4: Critical Emergency Assistance
+    [**CALL 911 / 112 EMERGENCY ASSISTANCE**]
+    Transmits vehicle GPS, license plate, and identities to police dispatch
+  }
+}
+
+@enduml

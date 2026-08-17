@@ -6,42 +6,9 @@ This specification defines the universal Safety Toolkit modal accessible to ride
 
 ## 1. Visual UI Layout & Multi-Layer Hierarchy
 
-```mermaid
-flowchart TB
-    subgraph PhoneFrame ["📱 Smartphone Viewport · Safety Toolkit Modal (SCR-COM-008)"]
-        direction TB
+![Safety Toolkit Modal UI Schema](diagrams/safety-toolkit-modal.svg)
 
-        subgraph HeaderSection ["Layer 1: Safety Shield Header"]
-            Title["🛡️ <b>Safety Toolkit</b> · Ride #ride_9918 · [✕ Close]"]
-            TrustBadge["✓ Verified Driver: Michael R. · Background Checked · 7XYZ981"]
-        end
-
-        subgraph PINCard ["Layer 2: 4-Digit Security PIN Box"]
-            PINDisplay["🔐 <b>Your Boarding PIN: [ 4 ] [ 8 ] [ 9 ] [ 2 ]</b><br/><i>Ensure your driver confirms this code before entering</i>"]
-        end
-
-        subgraph SafetyTiles ["Layer 3: Security & Monitoring Actions"]
-            ShareTile["📲 <b>Share Live Trip Status</b><br/><i>SMS link with real-time GPS tracking to trusted contacts</i>"]
-            AudioTile["🎙️ <b>Record In-Cabin Audio</b><br/><i>Encrypted on device · Stored in safety vault if incident occurs</i>"]
-            HotlineTile["📞 <b>24/7 Platform Safety Response Agent</b><br/><i>Direct instant voice connection to Safety Operations</i>"]
-        end
-
-        subgraph EmergencySOS ["Layer 4: Critical Emergency Assistance"]
-            SOSCTA["🔴 <b>CALL 911 / 112 EMERGENCY ASSISTANCE</b><br/><i>Transmits vehicle GPS, license plate, and identities to police dispatch</i>"]
-        end
-    end
-
-    style PhoneFrame fill:#F8FAFC,stroke:#334155,stroke-width:3px
-    style HeaderSection fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px
-    style TrustBadge fill:#ECFDF5,stroke:#059669,stroke-width:1px
-    style PINCard fill:#EFF6FF,stroke:#2563EB,stroke-width:2px
-    style SafetyTiles fill:#FFFFFF,stroke:#CBD5E1,stroke-width:1px
-    style ShareTile fill:#F8FAFC,stroke:#E2E8F0,stroke-width:1px
-    style AudioTile fill:#F8FAFC,stroke:#E2E8F0,stroke-width:1px
-    style HotlineTile fill:#F8FAFC,stroke:#E2E8F0,stroke-width:1px
-    style EmergencySOS fill:#FEF2F2,stroke:#EF4444,stroke-width:2px
-    style SOSCTA fill:#DC2626,stroke:#991B1B,color:#FFFFFF,stroke-width:2px
-```
+> _Source: [diagrams/safety-toolkit-modal.puml](diagrams/safety-toolkit-modal.puml)_
 
 
 ### 1.1 Header & Trust Badges
