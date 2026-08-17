@@ -1,0 +1,36 @@
+@startuml passenger-ride-search
+salt
+
+{+
+  == Passenger Radar Search (SCR-RIDER-005)
+  .
+  {+
+    == Layer 1: Top Search Status Bar (Floating Island)
+    555 Market St -> SFO Terminal 2
+    ---
+    Connecting with nearby drivers (~2-4 min)...
+  }
+  .
+  {+
+    == Layer 0: Full-Screen Radar Map Viewport
+    {SI
+      Pulsating Concentric Radar Rings (H3 Res 7 Area Sweep)
+      4 Candidate Drivers in Vicinity (Simulated Pins)
+    }
+  }
+  .
+  {+
+    == Layer 2: Search Status & Radar Progress Sheet
+    {+
+      == Matching Progress Information
+      **Economy Class | $18.50** (1.3x Surge Locked)
+      ---
+      Finding best driver: **0:42 / 3:00**
+      [=====               ]
+    }
+    .
+    [CANCEL SEARCH (Immediate 100% Refund)]
+  }
+}
+
+@enduml

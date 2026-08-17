@@ -1,0 +1,35 @@
+@startuml driver-payout-and-wallet
+salt
+
+{+
+  == Driver Wallet & Instant Payouts (SCR-DRV-007)
+  .
+  {+
+    == Layer 1: Available Balance & Cashout Hero
+    **Available Balance: $342.10**
+    Auto-deposits free every Monday at 04:00 AM
+    ---
+    [**INSTANT CASHOUT TO DEBIT CARD ($341.60)**]
+    Fast transfer in 1-2 minutes | $0.50 processing fee
+  }
+  .
+  {+
+    == Layer 2: 7-Day Revenue Analytics
+    Weekly Revenue: **$1,420.80** | 38.5 hrs online ($36.90/hr)
+    Mon $180 | Tue $210 | Wed $240 | Thu $190 | Fri $310 | Sat $290.80
+  }
+  .
+  {+
+    == Layer 3: Income Stream Breakdown
+    Fares: $1,120.00 | Surge: $165.00 | Tips: $135.80 (100%)
+  }
+  .
+  {+
+    == Layer 4: Linked Bank Account & Transactions
+    Visa Debit **** 9812 (Chase Bank | Instant Supported)
+    ---
+    Trip #77218 (+$29.80) | Instant Cashout (-$150.00)
+  }
+}
+
+@enduml

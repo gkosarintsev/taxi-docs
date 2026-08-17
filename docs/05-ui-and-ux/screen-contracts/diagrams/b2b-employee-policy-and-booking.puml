@@ -1,0 +1,29 @@
+@startuml b2b-employee-policy-and-booking
+salt
+
+{+
+  == Corporate Employee Booking (SCR-B2B-003)
+  .
+  {+
+    == Layer 1: Profile Toggle & Policy Status
+    Acme Corp Business Profile | [Switch to Personal]
+    ---
+    {G} **Within Travel Policy** (Allowed 07:00-22:00 | Max $100)
+  }
+  .
+  {+
+    == Layer 2: Corporate Accounting & Expense Form
+    Cost Center: | [Marketing - US West (#CC-491)  v]
+    Project Reference: | "Q3-PROMO-CAMPAIGN        "
+    Expense Purpose: | "Client Dinner at Salesforce Tower"
+  }
+  .
+  {+
+    == Layer 3: Direct Corporate Billing Card
+    Direct Invoicing to Acme Corp Corporate Ledger (Net 30)
+  }
+  .
+  [**BOOK ON BUSINESS ACCOUNT ($36.00)**]
+}
+
+@enduml

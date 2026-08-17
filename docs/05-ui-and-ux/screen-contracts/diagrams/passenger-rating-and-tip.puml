@@ -1,0 +1,40 @@
+@startuml passenger-rating-and-tip
+salt
+
+{+
+  == Post-Trip Rating & Tip (SCR-PAS-006)
+  .
+  {+
+    == Layer 1: Driver & Fare Summary Header
+    Michael B. | 4.94 | Silver Toyota Camry (7XYZ912)
+    ---
+    **$24.50 Paid** via Apple Pay | [Receipt Breakdown v]
+  }
+  .
+  {+
+    == Layer 2: Interactive 5-Star Rating Bar
+    (X) * | (X) * | (X) * | (X) * | (X) *
+    Tap to Rate Your Trip
+  }
+  .
+  {+
+    == Layer 3: Adaptive Feedback Chips
+    [Pristine Car] | [Safe Driving] | [Great Music] | [Fast Route]
+  }
+  .
+  {+
+    == Layer 4: 100% Direct Driver Tip Chips
+    [$1.00] | [$3.00] | [**$5.00**] | [Custom] | [No Tip]
+  }
+  .
+  {+
+    == Layer 5: Split Fare & Favorites
+    [Split Fare with Friends (+2 Co-Riders: $8.17 ea)]
+    ---
+    ( ) Add Michael to Favorite Drivers
+  }
+  .
+  [**SUBMIT REVIEW & RECEIPT**]
+}
+
+@enduml

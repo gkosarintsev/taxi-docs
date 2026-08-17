@@ -6,46 +6,9 @@ This specification governs the live tracking, safety HUD, route rendering, and E
 
 ## 1. Visual UI Layout & Multi-Layer Hierarchy
 
-```mermaid
-flowchart TB
-    subgraph PhoneFrame ["📱 Smartphone Viewport · Passenger Active Ride (SCR-RIDER-007)"]
-        direction TB
+![Passenger Active Ride UI Schema](diagrams/passenger-active-ride.svg)
 
-        subgraph TopLiveETA ["Layer 1: Live Trip Progress Island (Floating)"]
-            ETABadge["⏱️ <b>Arriving in 14 min</b> · 8.2 km · On-time (ETA 18:02)"]
-            ShieldQuickBtn["🛡️ Safety Shield (SOS & Live Share)"]
-        end
-
-        subgraph MapLiveCanvas ["Layer 0: Full-Screen Live Map Canvas"]
-            LiveCarTrack["🚗 Snapped Vehicle Cursor (60fps Cubic Spline) · Route Polyline with Live Traffic"]
-            DestMarker["🏁 Destination Pin: SFO International Airport Terminal 2"]
-        end
-
-        subgraph BottomDriverSheet ["Layer 2: Driver Info & Trip Actions Sheet"]
-            direction TB
-            subgraph DriverCard ["Driver & Vehicle Info"]
-                DriverMeta["👤 <b>Michael R.</b> ★ 4.94 · Silver Toyota Camry (7XYZ912)"]
-                CommsRow["📞 Call Driver (Masked VoIP) · 💬 Message"]
-            end
-
-            subgraph SafetyActionRow ["In-Transit Safety & Controls"]
-                ShareBtn["📲 <b>Share Live Tracking Link</b> (SMS / WhatsApp)"]
-                EditDestBtn["✏️ Edit Destination / Add Stop"]
-            end
-        end
-    end
-
-    style PhoneFrame fill:#F8FAFC,stroke:#334155,stroke-width:3px
-    style TopLiveETA fill:#0F172A,stroke:#38BDF8,color:#FFFFFF,stroke-width:2px
-    style ETABadge fill:#0284C7,stroke:#0369A1,color:#FFFFFF,stroke-width:1px
-    style ShieldQuickBtn fill:#0F172A,stroke:#10B981,color:#FFFFFF,stroke-width:1px
-    style MapLiveCanvas fill:#E0F2FE,stroke:#0284C7,stroke-width:2px
-    style BottomDriverSheet fill:#FFFFFF,stroke:#64748B,stroke-width:2px
-    style DriverCard fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1px
-    style SafetyActionRow fill:#FFFFFF,stroke:#E2E8F0,stroke-width:1px
-    style ShareBtn fill:#EFF6FF,stroke:#3B82F6,stroke-width:1px
-    style EditDestBtn fill:#F8FAFC,stroke:#94A3B8,stroke-width:1px
-```
+> _Source: [diagrams/passenger-active-ride.puml](diagrams/passenger-active-ride.puml)_
 
 
 ---

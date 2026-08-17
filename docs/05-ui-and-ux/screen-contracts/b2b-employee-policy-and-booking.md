@@ -6,36 +6,9 @@ This specification defines the corporate employee booking modal within the passe
 
 ## 1. Visual UI Layout & Multi-Layer Hierarchy
 
-```mermaid
-flowchart TB
-    subgraph PhoneFrame ["📱 Smartphone Viewport · Corporate Employee Booking (SCR-B2B-003)"]
-        direction TB
+![Corporate Employee Booking UI Schema](diagrams/b2b-employee-policy-and-booking.svg)
 
-        subgraph ProfileHeader ["Layer 1: Profile Toggle & Policy Status"]
-            Profile["🏢 <b>Acme Corp Business Profile</b> · [Switch to Personal]"]
-            PolicyBadge["🟢 <b>✓ Within Travel Policy</b> (Allowed 07:00-22:00 · Max $100)"]
-        end
-
-        subgraph AccountingFields ["Layer 2: Corporate Accounting & Expense Form"]
-            CostCenter["📁 Cost Center: <b>Marketing - US West (#CC-491)</b> ▼"]
-            ProjectCode["🏷️ Project Reference: <b>[ Q3-PROMO-CAMPAIGN ]</b>"]
-            TripPurpose["📝 Expense Purpose: <b>[ Client Dinner at Salesforce Tower ]</b>"]
-        end
-
-        subgraph BillingInfo ["Layer 3: Direct Corporate Billing Card"]
-            CardInfo["💳 Direct Invoicing to Acme Corp Corporate Ledger (Net 30)"]
-        end
-
-        ConfirmCTA["🔵 <b>BOOK ON BUSINESS ACCOUNT ($36.00)</b>"]
-    end
-
-    style PhoneFrame fill:#F8FAFC,stroke:#334155,stroke-width:3px
-    style ProfileHeader fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px
-    style PolicyBadge fill:#ECFDF5,stroke:#059669,stroke-width:1px
-    style AccountingFields fill:#EFF6FF,stroke:#3B82F6,stroke-width:2px
-    style BillingInfo fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1px
-    style ConfirmCTA fill:#2563EB,stroke:#1D4ED8,color:#FFFFFF,stroke-width:2px
-```
+> _Source: [diagrams/b2b-employee-policy-and-booking.puml](diagrams/b2b-employee-policy-and-booking.puml)_
 
 
 ### 1.1 Policy Enforcement Invariants

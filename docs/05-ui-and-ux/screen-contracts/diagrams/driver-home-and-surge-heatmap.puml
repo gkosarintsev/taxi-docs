@@ -1,0 +1,42 @@
+@startuml driver-home-and-surge-heatmap
+salt
+
+{+
+  == Driver Home Dashboard (SCR-DRV-001)
+  .
+  {+
+    == Layer 1: Shift Control & Destination Mode
+    {G} **ONLINE (ACCEPTING RIDES)** | [Tap to Go Offline]
+    ---
+    Set Destination (Drive Towards Home | 1/2 Left)
+  }
+  .
+  {+
+    == Layer 0: H3 Hexagonal Surge Heatmap
+    {SI
+      H3 Res 7 Hexagons:
+      Mission (1.8x +$4.50) | Downtown (1.4x)
+    }
+  }
+  .
+  {+
+    == Layer 2: Daily Earnings & Quest Progression
+    {+
+      == Today's Financial Summary
+      **$248.50** Earnings | 12 Rides | 6h 15m Online ($39.75/hr)
+    }
+    .
+    {+
+      == Active Incentive Goal
+      Quest: **12 / 15 Rides** (Complete 3 more for **+$45.00 Bonus**)
+      [==========          ]
+    }
+    .
+    {+
+      == Driver Health & Account Metrics
+      Rating: **4.96** | Acceptance: **94%** | Cancellation: **1.2%**
+    }
+  }
+}
+
+@enduml

@@ -1,0 +1,43 @@
+@startuml driver-active-navigation
+salt
+
+{+
+  == Driver Active Navigation HUD (SCR-DRV-004)
+  .
+  {+
+    == Layer 1: Top Maneuver Guidance Banner
+    **In 250 m** | Exit 431A to SFO Airport
+    ---
+    Then turn left on Domestic Terminals in 100m
+    ---
+    Lane Guidance: [X] [X] [**OK**] [**OK**]  (Stay in 2 Right Lanes)
+  }
+  .
+  {+
+    == Layer 0: 3D Map Canvas
+    {SI
+      Active Turn-by-Turn Route Polyline
+      Live Snapped Vehicle Arrow
+    }
+    Speed: **62 km/h** (Limit: 65 km/h) | Toll: $5.00 Ahead
+  }
+  .
+  {+
+    == Layer 2: Trip Progress & Control Sheet
+    {+
+      == Trip Metrics & ETA
+      **12 min** remaining | **4.8 km** | ETA **17:45**
+      ---
+      Faster route found (-4 min) | [Accept]
+    }
+    .
+    {+
+      == Driver Completion Action
+      [>>>>>>>>>> SLIDE TO COMPLETE TRIP >>>>>>>>>>]
+      ---
+      [SOS Emergency]
+    }
+  }
+}
+
+@enduml

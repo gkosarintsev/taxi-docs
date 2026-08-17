@@ -1,0 +1,50 @@
+@startuml driver-pickup-and-trip-start
+salt
+
+{+
+  == Driver Pickup Spot & Trip Start (SCR-DRV-003)
+  .
+  {+
+    == Layer 1: Top Arrival Status HUD
+    {G} **YOU ARE AT PICKUP SPOT: 555 Market St**
+    ---
+    [Navigate to Exact Pin (Waze / Google Maps / Native)]
+  }
+  .
+  {+
+    == Layer 0: High-Precision Pickup Spot Map
+    {SI
+      Passenger Pin (Accuracy: +/-3m)
+      Geofence Circle (Radius: 30m)
+    }
+  }
+  .
+  {+
+    == Layer 2: Bottom Pickup Control Sheet
+    {+
+      == Passenger Information & Communication
+      **Sarah K.** (4.92 | 142 rides)
+      ---
+      [Call (VoIP)] | [Chat]
+    }
+    .
+    {+
+      == Dual-Stage Wait Timer HUD
+      **Free Waiting: 02:15** (Paid wait starts after 3:00 at $0.45/min)
+    }
+    .
+    {+
+      == 4-Digit Security OTP Keypad
+      Enter Passenger Code: | [ 4 ] [ 9 ] [ 1 ] [ 2 ] | [Verify]
+    }
+    .
+    {+
+      == Trip Execution Actions
+      [>>>>>>>>>> SLIDE TO START TRIP >>>>>>>>>>]
+      ---
+      [Passenger No-Show (Active after 5:00 min | $6.00 Fee)]
+    }
+  }
+}
+
+@enduml

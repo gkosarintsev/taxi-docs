@@ -6,39 +6,9 @@ This contract defines the client-side interaction for booking rides in advance (
 
 ## 1. Visual UI Layout & Multi-Layer Hierarchy
 
-```mermaid
-flowchart TB
-    subgraph PhoneFrame ["📱 Smartphone Viewport · Scheduled Ride Booking (SCR-RIDER-004)"]
-        direction TB
+![Passenger Scheduled Ride Booking UI Schema](diagrams/passenger-scheduled-booking.svg)
 
-        subgraph HeaderSection ["Layer 1: Top Navigation Bar"]
-            Title["📅 <b>Schedule a Ride in Advance</b> · [✕ Dismiss]"]
-        end
-
-        subgraph DateTimeWheel ["Layer 2: Interactive Date & Time Picker Wheel"]
-            Date["🗓️ <b>Tue, Aug 18, 2026</b> (Scrollable Days)"]
-            Time["⏰ <b>06 : 30  AM</b> (5-min Interval Snap Wheel)"]
-        end
-
-        subgraph RouteDetails ["Layer 3: Route & Guaranteed Fare Card"]
-            Addresses["📍 Pickup: 742 Evergreen Terr ➔ 🏁 Dropoff: SFO Terminal 2"]
-            FareCard["💵 <b>$42.00 Guaranteed Upfront Price</b><br/><i>Includes $3.50 Advance Reservation Matching Fee</i>"]
-        end
-
-        subgraph PolicyAccordion ["Layer 4: Cancellation Policy Invariant"]
-            Policy["🛡️ <b>Free cancellation</b> up to 60 min before pickup.<br/><i>($10.00 late cancellation fee applies if driver dispatched)</i>"]
-        end
-
-        ConfirmCTA["🔵 <b>CONFIRM SCHEDULED RIDE FOR 06:30 AM</b>"]
-    end
-
-    style PhoneFrame fill:#F8FAFC,stroke:#334155,stroke-width:3px
-    style HeaderSection fill:#FFFFFF,stroke:#94A3B8,stroke-width:1px
-    style DateTimeWheel fill:#EFF6FF,stroke:#3B82F6,stroke-width:2px
-    style RouteDetails fill:#FFFFFF,stroke:#CBD5E1,stroke-width:1px
-    style PolicyAccordion fill:#FEF3C7,stroke:#D97706,stroke-width:1px
-    style ConfirmCTA fill:#2563EB,stroke:#1D4ED8,color:#FFFFFF,stroke-width:2px
-```
+> _Source: [diagrams/passenger-scheduled-booking.puml](diagrams/passenger-scheduled-booking.puml)_
 
 
 ### 1.1 Advance Time Picker

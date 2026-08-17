@@ -1,0 +1,39 @@
+@startuml driver-trip-completion-summary
+salt
+
+{+
+  == Driver Trip Completion & Receipt (SCR-DRV-005)
+  .
+  {+
+    == Layer 1: Destination Arrival Header
+    {G} **Arrived at SFO Airport Terminal 2** | Dropoff Complete
+  }
+  .
+  {+
+    == Layer 2: Net Earnings Hero Card
+    **+$29.80 Net Earnings**
+    Auto-credited to your instant driver wallet
+    ---
+    **+$5.00 Tip Added by Sarah!** (100% to you)
+  }
+  .
+  {+
+    == Layer 3: Itemized Fare Breakdown Receipt
+    Base Fare: $4.50 | Distance & Time: $24.50
+    ---
+    Surge 1.2x: +$5.80 | Toll Reimbursement: +$6.50
+    ---
+    Platform Commission (20%): -$7.15 | Paid Wait: +$0.45
+  }
+  .
+  {+
+    == Layer 4: Passenger Rating & Feedback
+    (X) * | (X) * | (X) * | (X) * | (X) *    Rate Sarah K.
+    ---
+    [Polite] | [On-time at pickup] | [Respectful]
+  }
+  .
+  [**READY FOR NEXT RIDE (RETURN ONLINE)**]
+}
+
+@enduml
