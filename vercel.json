@@ -1,4 +1,6 @@
 {
+  "buildCommand": "echo 'Static docs ready'",
+  "outputDirectory": ".",
   "cleanUrls": true,
   "trailingSlash": false
 }
